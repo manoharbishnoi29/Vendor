@@ -15,6 +15,7 @@ textarea{min-height:90px;font-family:inherit}
 .btn{background:var(--p);color:#fff;border:0;font-weight:600}
 .btn.alt{background:#fff;color:var(--p);border:1px solid var(--p)}
 .btn:disabled{opacity:.5}
+a.btn{display:block;text-align:center;text-decoration:none}
 .lnk{background:none;border:0;color:var(--p);font-size:15px;padding:8px 0;cursor:pointer}
 .mut{color:var(--mut);font-size:13px;margin:3px 0}
 .top{position:sticky;top:0;background:#fff;padding:10px;z-index:5;box-shadow:0 1px 4px #0002}
@@ -34,10 +35,10 @@ textarea{min-height:90px;font-family:inherit}
 #nav[hidden]{display:none}
 #nav button{flex:1;border:0;background:none;font-size:12px;color:var(--mut)}
 #nav button.on{color:var(--p);font-weight:700}
-#toast{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;z-index:20;max-width:90%;text-align:center}
+#toast{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;z-index:40;max-width:90%;text-align:center}
 .row2{background:#fff;padding:12px;border-radius:10px;margin:8px 0}
 .tabs{display:flex;gap:6px;margin:8px 0}
-.tabs button{flex:1;padding:10px;border:0;border-radius:8px;background:#e6e9f0;font-size:14px}
+.tabs button{flex:1;padding:10px 4px;border:0;border-radius:8px;background:#e6e9f0;font-size:13px}
 .tabs button.on{background:var(--p);color:#fff}
 .badge{font-size:12px;padding:2px 8px;border-radius:10px;background:#e6e9f0}
 .chat{display:flex;flex-direction:column;height:calc(100vh - 56px)}
@@ -45,7 +46,15 @@ textarea{min-height:90px;font-family:inherit}
 .ms{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
 .m{max-width:75%;padding:8px 12px;border-radius:14px;background:#fff;align-self:flex-start;word-break:break-word}
 .m.me{background:var(--p);color:#fff;align-self:flex-end}
-.ch-f{display:flex;gap:6px;padding:8px;background:#fff}.ch-f input{margin:0}.ch-f .btn{width:80px;margin:0}
+.m img.pic{max-width:220px;width:100%;border-radius:8px;display:block}
+.m.adm{display:flex;gap:8px;cursor:pointer;align-items:center}
+.m.adm img{width:56px;height:56px;object-fit:cover;border-radius:6px}
+.m.adm small{opacity:.8}
+.ch-f{display:flex;gap:6px;padding:8px;background:#fff;align-items:center}
+.ch-f input{margin:0}.ch-f .btn{width:80px;margin:0}
+.cam{font-size:26px;padding:0 4px;cursor:pointer}
+.ov{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end}
+.sheet{background:#fff;width:100%;border-radius:16px 16px 0 0;padding:16px;max-height:88vh;overflow:auto}
 </style>
 </head>
 <body>
@@ -73,12 +82,14 @@ const A = $("#app");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const today = () => new Date().toISOString().slice(0, 10);
 const DEF_CATS = ["Mobiles", "Vehicles", "Electronics", "Furniture", "Fashion", "Books", "Others"];
+const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confirm ✅", settled: "Seller ko paisa mil gaya ✅", rejected: "Reject ❌" };
 
 let me = null, myDoc = null, cats = [], ads = [], favs = new Set(), pos = null, unsub = null;
 let pendingName = "", imgs = [], chatMeta = {};
+let settings = { upiId: "", upiName: "OldKart", razorpayKey: "", commission: 5 };
 let F = { q: "", cat: "", sort: "new" };
 
-const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2800); };
+const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); };
 
 const km = (a, b) => {
   const R = 6371, r = x => x * Math.PI / 180, dl = r(b.lat - a.lat), dg = r(b.lng - a.lng);
@@ -94,21 +105,23 @@ const getLoc = () => new Promise(res => {
   );
 });
 
-const compress = file => new Promise(res => {
-  const r = new FileReader();
-  r.onload = () => {
-    const i = new Image();
-    i.onload = () => {
-      const s = Math.min(1, 700 / Math.max(i.width, i.height));
-      const c = document.createElement("canvas");
-      c.width = i.width * s; c.height = i.height * s;
-      c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
-      res(c.toDataURL("image/jpeg", 0.6));
-    };
-    i.src = r.result;
+const resize = (src, max, q) => new Promise(res => {
+  const i = new Image();
+  i.onload = () => {
+    const s = Math.min(1, max / Math.max(i.width, i.height));
+    const c = document.createElement("canvas");
+    c.width = i.width * s; c.height = i.height * s;
+    c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
+    res(c.toDataURL("image/jpeg", q));
   };
+  i.src = src;
+});
+const compress = (file, max = 700) => new Promise(res => {
+  const r = new FileReader();
+  r.onload = () => resize(r.result, max, 0.6).then(res);
   r.readAsDataURL(file);
 });
+const thumb = src => resize(src, 110, 0.6);
 
 /* ---------- navigation ---------- */
 const views = { home: viewHome, sell: viewSell, chats: viewChats, profile: viewProfile, detail: viewDetail, chat: viewChat };
@@ -158,7 +171,7 @@ onAuthStateChanged(auth, async u => {
   const r = doc(db, "users", u.uid);
   let s = await getDoc(r);
   if (!s.exists()) {
-    await setDoc(r, { name: pendingName || u.email.split("@")[0], email: u.email, phone: "", city: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
+    await setDoc(r, { name: pendingName || u.email.split("@")[0], email: u.email, phone: "", city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
     s = await getDoc(r);
   }
   myDoc = s.data();
@@ -166,6 +179,7 @@ onAuthStateChanged(auth, async u => {
   me = u;
   try { const c = await getDocs(collection(db, "categories")); cats = c.docs.map(d => d.data().name); } catch (e) {}
   if (!cats.length) cats = DEF_CATS;
+  try { const st = await getDoc(doc(db, "settings", "app")); if (st.exists()) Object.assign(settings, st.data()); } catch (e) {}
   const f = await getDocs(collection(db, "users", u.uid, "favs"));
   favs = new Set(f.docs.map(d => d.id));
   try { await setDoc(doc(db, "daily_activity", today() + "_" + u.uid), { uid: u.uid, date: today() }); } catch (e) {}
@@ -215,7 +229,7 @@ async function toggleFav(id, el) {
   el.textContent = el.classList.contains("btn") ? (on ? "❤️ Saved" : "🤍 Save") : (on ? "❤️" : "🤍");
 }
 
-/* ---------- ad detail ---------- */
+/* ---------- ad detail + buy ---------- */
 async function viewDetail(id) {
   let s; try { s = await getDoc(doc(db, "ads", id)); } catch (e) { return toast("Ad nahi mili"); }
   if (!s.exists()) return toast("Ad nahi mili");
@@ -225,10 +239,73 @@ async function viewDetail(id) {
   <h2>₹${a.price}</h2><h3>${esc(a.title)}</h3>
   <p class="mut">📍 ${esc(a.city)} • ${esc(a.condition)} • ${esc(a.category)}</p>
   <p>${esc(a.description)}</p><p class="mut">Seller: ${esc(a.sellerName)}</p>
-  ${a.status === "sold" ? "<b>SOLD ✔</b>" : own ? "" : `<button class="btn" id="cb">💬 Seller se chat karo</button>`}
+  ${a.status === "sold" ? "<b>SOLD ✔</b>" : own ? "" : `<button class="btn" id="by">🛒 Buy karo (₹${a.price})</button><button class="btn alt" id="cb">💬 Seller se chat karo</button>`}
   <button class="btn alt" data-fav="${id}">${favs.has(id) ? "❤️ Saved" : "🤍 Save"}</button></div>`;
   $("#bk").onclick = () => go("home");
   if ($("#cb")) $("#cb").onclick = () => startChat(a);
+  if ($("#by")) $("#by").onclick = () => paySheet(a);
+}
+
+function paySheet(a) {
+  const ov = document.createElement("div");
+  ov.className = "ov";
+  ov.innerHTML = `<div class="sheet"><h3>Payment</h3>
+  <p><b>${esc(a.title)}</b><br>Total: <b>₹${a.price}</b></p>
+  <button class="btn" id="pm1">💳 Online Payment (UPI / Card / NetBanking)</button>
+  <button class="btn alt" id="pm2">📱 UPI se seedha pay karo</button>
+  <div id="pb2"></div>
+  <p class="mut">Paisa pehle OldKart ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
+  <button class="lnk" id="px">Cancel</button></div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.querySelector("#px").onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+
+  ov.querySelector("#pm1").onclick = async () => {
+    if (!settings.razorpayKey) return toast("Online payment abhi on nahi hai. UPI se pay karo.");
+    if (!window.Razorpay) {
+      await new Promise((ok, no) => {
+        const sc = document.createElement("script");
+        sc.src = "https://checkout.razorpay.com/v1/checkout.js"; sc.onload = ok; sc.onerror = no;
+        document.head.appendChild(sc);
+      }).catch(() => toast("Payment page load nahi hua"));
+    }
+    if (!window.Razorpay) return;
+    new window.Razorpay({
+      key: settings.razorpayKey, amount: Math.round(a.price * 100), currency: "INR",
+      name: "OldKart", description: a.title,
+      prefill: { name: myDoc.name, email: myDoc.email },
+      theme: { color: "#3b3fd8" },
+      handler: r => { close(); createPayment(a, "razorpay", r.razorpay_payment_id); }
+    }).open();
+  };
+
+  ov.querySelector("#pm2").onclick = () => {
+    if (!settings.upiId) return toast("UPI abhi set nahi hai");
+    const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("OldKart " + a.title.slice(0, 30))}`;
+    const b = ov.querySelector("#pb2");
+    b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
+    <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
+    <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
+    <button class="btn" id="pd">Maine pay kar diya</button>`;
+    b.querySelector("#pd").onclick = () => {
+      const u = b.querySelector("#utr").value.trim();
+      if (u.length < 6) return toast("Sahi Transaction ID likho");
+      close(); createPayment(a, "upi", u);
+    };
+  };
+}
+
+async function createPayment(a, method, ref) {
+  try {
+    await addDoc(collection(db, "payments"), {
+      adId: a.id, adTitle: a.title, buyerId: me.uid, buyerName: myDoc.name,
+      sellerId: a.userId, sellerName: a.sellerName, amount: a.price,
+      commissionPercent: settings.commission, method, ref, status: "pending", createdAt: serverTimestamp()
+    });
+    toast("Payment note ho gayi. Admin verify karega ✅");
+    go("profile", "orders");
+  } catch (e) { toast("Payment save nahi hui: " + e.message); }
 }
 
 /* ---------- sell ---------- */
@@ -266,11 +343,21 @@ function viewSell() {
 }
 
 /* ---------- chat ---------- */
+async function sendMsg(cid, m, preview) {
+  await setDoc(doc(db, "chats", cid), { lastMessage: preview, updatedAt: serverTimestamp() }, { merge: true });
+  await addDoc(collection(db, "chats", cid, "messages"), { from: me.uid, createdAt: serverTimestamp(), ...m });
+}
 async function startChat(a) {
   const id = a.id + "_" + me.uid;
   const data = { participants: [me.uid, a.userId], adId: a.id, adTitle: a.title, buyerId: me.uid, sellerId: a.userId, buyerName: myDoc.name, sellerName: a.sellerName };
-  try { await setDoc(doc(db, "chats", id), data, { merge: true }); go("chat", { id, ...data }); }
-  catch (e) { toast(e.message); }
+  try {
+    await setDoc(doc(db, "chats", id), data, { merge: true });
+    const cs = await getDoc(doc(db, "chats", id));
+    if (!cs.data().lastMessage) {
+      await sendMsg(id, { type: "ad", adId: a.id, adTitle: a.title, adPrice: a.price, adImg: await thumb(a.images[0]) }, "📎 Ad: " + a.title);
+    }
+    go("chat", { id, ...data });
+  } catch (e) { toast(e.message); }
 }
 function viewChats() {
   A.innerHTML = `<div class="pad"><h2>Chats</h2><div id="cl"><p class="mut">Loading...</p></div></div>`;
@@ -283,36 +370,46 @@ function viewChats() {
       : `<p class="mut">Abhi koi chat nahi. Kisi ad par "Seller se chat karo" dabao.</p>`;
   });
 }
+const msgHtml = m => {
+  const mine = m.from === me.uid ? "me" : "";
+  if (m.type === "ad") return `<div class="m adm ${mine}" data-ad="${m.adId}"><img src="${m.adImg || ""}" alt=""><div><b>₹${m.adPrice}</b><div>${esc(m.adTitle)}</div><small>Ad dekhne ke liye tap karo</small></div></div>`;
+  if (m.type === "img") return `<div class="m ${mine}"><img class="pic" src="${m.img}" alt=""></div>`;
+  return `<div class="m ${mine}">${esc(m.text)}</div>`;
+};
 function viewChat(c) {
   const other = c.buyerId === me.uid ? c.sellerName : c.buyerName;
   A.innerHTML = `<div class="chat"><div class="ch-h"><button class="lnk" id="bk">←</button>
   <div><b>${esc(other)}</b><div class="mut">${esc(c.adTitle)}</div></div></div>
   <div id="ms" class="ms"></div>
-  <div class="ch-f"><input id="mi" placeholder="Message likho..."><button class="btn" id="sd">Send</button></div></div>`;
+  <div class="ch-f"><label class="cam">📷<input type="file" id="cf" accept="image/*" hidden></label>
+  <input id="mi" placeholder="Message likho..."><button class="btn" id="sd">Send</button></div></div>`;
   $("#bk").onclick = () => go("chats");
   unsub = onSnapshot(query(collection(db, "chats", c.id, "messages"), orderBy("createdAt")), s => {
-    $("#ms").innerHTML = s.docs.map(d => { const m = d.data(); return `<div class="m ${m.from === me.uid ? "me" : ""}">${esc(m.text)}</div>`; }).join("");
+    $("#ms").innerHTML = s.docs.map(d => msgHtml(d.data())).join("");
     $("#ms").scrollTop = 1e9;
   }, () => {});
   const send = async () => {
     const t = $("#mi").value.trim(); if (!t) return; $("#mi").value = "";
-    try {
-      await setDoc(doc(db, "chats", c.id), { lastMessage: t, updatedAt: serverTimestamp() }, { merge: true });
-      await addDoc(collection(db, "chats", c.id, "messages"), { from: me.uid, text: t, createdAt: serverTimestamp() });
-    } catch (e) { toast(e.message); }
+    try { await sendMsg(c.id, { type: "text", text: t }, t); } catch (e) { toast(e.message); }
   };
   $("#sd").onclick = send;
   $("#mi").onkeydown = e => { if (e.key === "Enter") send(); };
+  $("#cf").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { toast("Photo bhej raha hoon..."); await sendMsg(c.id, { type: "img", img: await compress(f, 600) }, "📷 Photo"); }
+    catch (x) { toast(x.message); }
+    e.target.value = "";
+  };
 }
 
 /* ---------- profile ---------- */
-function viewProfile() {
+function viewProfile(tab = "ads") {
   A.innerHTML = `<div class="pad"><h2>👤 ${esc(myDoc.name)}</h2><p class="mut">${esc(myDoc.email)}</p>
-  <div class="tabs"><button data-t="ads">Meri Ads</button><button data-t="fav">Favorites</button><button data-t="edit">Edit</button></div>
+  <div class="tabs"><button data-t="ads">Meri Ads</button><button data-t="orders">Orders</button><button data-t="fav">Favorites</button><button data-t="edit">Edit</button></div>
   <div id="pb"></div><button class="btn alt" id="lg">Logout</button></div>`;
   const tabs = A.querySelectorAll(".tabs button");
   tabs.forEach(b => b.onclick = () => { tabs.forEach(x => x.classList.toggle("on", x === b)); pTab(b.dataset.t); });
-  tabs[0].click();
+  [...tabs].find(b => b.dataset.t === tab).click();
   $("#lg").onclick = () => signOut(auth);
 }
 async function pTab(t) {
@@ -331,15 +428,31 @@ async function pTab(t) {
       if (sold) { await updateDoc(doc(db, "ads", sold), { status: "sold" }); pTab("ads"); }
       if (del && confirm("Ad delete karein?")) { await deleteDoc(doc(db, "ads", del)); pTab("ads"); }
     };
+  } else if (t === "orders") {
+    const [b, s] = await Promise.all([
+      getDocs(query(collection(db, "payments"), where("buyerId", "==", me.uid))),
+      getDocs(query(collection(db, "payments"), where("sellerId", "==", me.uid)))
+    ]);
+    const row = (d, buyer) => {
+      const p = d.data(), get = Math.round(p.amount * (100 - p.commissionPercent)) / 100;
+      return `<div class="row2"><b>${esc(p.adTitle)}</b> • ₹${p.amount}<br>
+      <span class="badge">${ST[p.status] || p.status}</span>
+      <div class="mut">${buyer ? "Maine kharida (seller: " + esc(p.sellerName) + ")" : "Maine becha (buyer: " + esc(p.buyerName) + ") • Aapko milega: ₹" + get}</div></div>`;
+    };
+    box.innerHTML = (b.empty && s.empty) ? `<p class="mut">Abhi koi order nahi</p>`
+      : b.docs.map(d => row(d, true)).join("") + s.docs.map(d => row(d, false)).join("");
+    if (!s.empty && !myDoc.upi) box.innerHTML = `<p class="mut">⚠️ Paisa lene ke liye Edit tab mein apna UPI ID daalo.</p>` + box.innerHTML;
   } else if (t === "fav") {
     const L = (await Promise.all([...favs].map(i => getDoc(doc(db, "ads", i)).catch(() => null))))
       .filter(x => x && x.exists()).map(x => ({ id: x.id, ...x.data() }));
     box.innerHTML = L.length ? `<div class="grid" style="padding:0">${L.map(card).join("")}</div>` : `<p class="mut">Koi favorite nahi</p>`;
   } else {
     box.innerHTML = `<input id="en" placeholder="Naam" value="${esc(myDoc.name)}"><input id="ep" placeholder="Phone" value="${esc(myDoc.phone)}">
-    <input id="ec" placeholder="City" value="${esc(myDoc.city)}"><button class="btn" id="sv">Save changes</button>`;
+    <input id="ec" placeholder="City" value="${esc(myDoc.city)}">
+    <input id="eu" placeholder="Aapka UPI ID (paisa lene ke liye)" value="${esc(myDoc.upi || "")}">
+    <button class="btn" id="sv">Save changes</button>`;
     $("#sv").onclick = async () => {
-      const d = { name: $("#en").value.trim() || myDoc.name, phone: $("#ep").value.trim(), city: $("#ec").value.trim() };
+      const d = { name: $("#en").value.trim() || myDoc.name, phone: $("#ep").value.trim(), city: $("#ec").value.trim(), upi: $("#eu").value.trim() };
       await updateDoc(doc(db, "users", me.uid), d); Object.assign(myDoc, d); toast("Profile save ho gayi");
     };
   }
