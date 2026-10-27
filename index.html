@@ -319,6 +319,7 @@ function viewSell() {
   <select id="cd"><option>Used</option><option>Like New</option><option>New</option></select>
   <input id="pr" type="number" placeholder="Price (₹)">
   <input id="ci" placeholder="City / Area" value="${esc(myDoc.city || "")}">
+  ${myDoc.upi ? "" : `<input id="up" placeholder="Aapka UPI ID (bikne par paisa yahan milega)"><p class="mut">UPI ID zaroori hai, warna hum aapko paisa nahi bhej payenge.</p>`}
   <button class="btn alt" id="lo">📍 Meri location use karo</button>
   <button class="btn" id="go">Ad post karo</button></div>`;
   $("#im").onchange = async e => {
@@ -330,8 +331,14 @@ function viewSell() {
   $("#go").onclick = async () => {
     const t = $("#t").value.trim(), p = Number($("#pr").value), ci = $("#ci").value.trim();
     if (!imgs.length || !t || !p || !ci) return toast("Photo, title, price aur city zaroori hai");
+    let up = myDoc.upi || "";
+    if (!up) {
+      up = $("#up")?.value.trim() || "";
+      if (!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(up)) return toast("Sahi UPI ID likho (jaise naam@upi)");
+    }
     $("#go").disabled = true;
     try {
+      if (!myDoc.upi) { await updateDoc(doc(db, "users", me.uid), { upi: up }); myDoc.upi = up; }
       await addDoc(collection(db, "ads"), {
         userId: me.uid, sellerName: myDoc.name, title: t, description: $("#d").value.trim(),
         category: $("#c").value, condition: $("#cd").value, price: p, city: ci,
