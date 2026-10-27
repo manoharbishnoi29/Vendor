@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OldKart</title>
+<title>Vendor</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f6b82">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--p:#3b3fd8;--ink:#151826;--bg:#f2f4f7;--mut:#6b7285;--line:#d9dde6}
 *{box-sizing:border-box}
@@ -86,7 +90,7 @@ const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confir
 
 let me = null, myDoc = null, cats = [], ads = [], favs = new Set(), pos = null, unsub = null;
 let pendingName = "", pendingPhone = "", imgs = [], chatMeta = {};
-let settings = { upiId: "", upiName: "OldKart", razorpayKey: "", commission: 5 };
+let settings = { upiId: "", upiName: "Vendor", razorpayKey: "", commission: 5 };
 let F = { q: "", cat: "", sort: "new" };
 
 const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); };
@@ -145,7 +149,7 @@ A.addEventListener("click", e => {
 /* ---------- auth ---------- */
 function viewAuth() {
   $("#nav").hidden = true;
-  A.innerHTML = `<div class="box"><h1>🛍️ OldKart</h1><p class="mut">Purani cheezein khareedo aur becho</p>
+  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:120px;display:block;margin:0 auto"><h1 style="text-align:center">Vendor</h1><p class="mut" style="text-align:center">Connect | Sell | Grow</p>
   <input id="n" placeholder="Naam (sirf signup ke liye)">
   <input id="ph" type="tel" inputmode="numeric" maxlength="10" placeholder="Mobile number, 10 ank (sirf signup ke liye)">
   <input id="e" type="email" placeholder="Email">
@@ -258,7 +262,7 @@ function paySheet(a) {
   <button class="btn" id="pm1">💳 Online Payment (UPI / Card / NetBanking)</button>
   <button class="btn alt" id="pm2">📱 UPI se seedha pay karo</button>
   <div id="pb2"></div>
-  <p class="mut">Paisa pehle OldKart ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
+  <p class="mut">Paisa pehle Vendor ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
   <button class="lnk" id="px">Cancel</button></div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
@@ -277,7 +281,7 @@ function paySheet(a) {
     if (!window.Razorpay) return;
     new window.Razorpay({
       key: settings.razorpayKey, amount: Math.round(a.price * 100), currency: "INR",
-      name: "OldKart", description: a.title,
+      name: "Vendor", description: a.title,
       prefill: { name: myDoc.name, email: myDoc.email },
       theme: { color: "#3b3fd8" },
       handler: r => { close(); createPayment(a, "razorpay", r.razorpay_payment_id); }
@@ -286,15 +290,15 @@ function paySheet(a) {
 
   ov.querySelector("#pm2").onclick = () => {
     if (!settings.upiId) return toast("UPI abhi set nahi hai");
-    const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("OldKart " + a.title.slice(0, 30))}`;
+    const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("Vendor " + a.title.slice(0, 30))}`;
     const b = ov.querySelector("#pb2");
     b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
     <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
-    <input id="utr" inputmode="numeric" maxlength="12" placeholder="12 ank ki UPI Transaction ID (UTR)">
+    <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
     <button class="btn" id="pd">Maine pay kar diya</button>`;
     b.querySelector("#pd").onclick = () => {
       const u = b.querySelector("#utr").value.trim();
-      if (!/^\d{12}$/.test(u)) return toast("UTR sirf 12 ank ka number hota hai. Apne UPI app ki payment history se dekho.");
+      if (u.length < 6) return toast("Sahi Transaction ID likho");
       close(); createPayment(a, "upi", u);
     };
   };
@@ -302,14 +306,14 @@ function paySheet(a) {
 
 async function createPayment(a, method, ref) {
   try {
-    await setDoc(doc(db, "payments", method + "_" + ref), {
+    await addDoc(collection(db, "payments"), {
       adId: a.id, adTitle: a.title, buyerId: me.uid, buyerName: myDoc.name,
       sellerId: a.userId, sellerName: a.sellerName, amount: a.price,
       commissionPercent: settings.commission, method, ref, status: "pending", createdAt: serverTimestamp()
     });
     toast("Payment note ho gayi. Admin verify karega ✅");
     go("profile", "orders");
-  } catch (e) { toast("Payment save nahi hui. Ye Transaction ID pehle use ho chuki hai ya galat hai."); }
+  } catch (e) { toast("Payment save nahi hui: " + e.message); }
 }
 
 /* ---------- sell ---------- */
@@ -468,6 +472,7 @@ async function pTab(t) {
     };
   }
 }
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
