@@ -85,7 +85,7 @@ const DEF_CATS = ["Mobiles", "Vehicles", "Electronics", "Furniture", "Fashion", 
 const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confirm ✅", settled: "Seller ko paisa mil gaya ✅", rejected: "Reject ❌" };
 
 let me = null, myDoc = null, cats = [], ads = [], favs = new Set(), pos = null, unsub = null;
-let pendingName = "", imgs = [], chatMeta = {};
+let pendingName = "", pendingPhone = "", imgs = [], chatMeta = {};
 let settings = { upiId: "", upiName: "OldKart", razorpayKey: "", commission: 5 };
 let F = { q: "", cat: "", sort: "new" };
 
@@ -147,13 +147,17 @@ function viewAuth() {
   $("#nav").hidden = true;
   A.innerHTML = `<div class="box"><h1>🛍️ OldKart</h1><p class="mut">Purani cheezein khareedo aur becho</p>
   <input id="n" placeholder="Naam (sirf signup ke liye)">
+  <input id="ph" type="tel" inputmode="numeric" maxlength="10" placeholder="Mobile number, 10 ank (sirf signup ke liye)">
   <input id="e" type="email" placeholder="Email">
   <input id="p" type="password" placeholder="Password (min 6 akshar)">
   <button class="btn" id="su">Signup</button>
   <button class="btn alt" id="li">Login</button>
   <button class="lnk" id="fp">Password bhool gaye?</button></div>`;
   $("#su").onclick = async () => {
-    try { pendingName = $("#n").value.trim(); await createUserWithEmailAndPassword(auth, $("#e").value, $("#p").value); }
+    const ph = $("#ph").value.trim();
+    if (!$("#n").value.trim()) return toast("Naam likho");
+    if (!/^[6-9]\d{9}$/.test(ph)) return toast("Sahi 10 ank ka mobile number likho");
+    try { pendingName = $("#n").value.trim(); pendingPhone = ph; await createUserWithEmailAndPassword(auth, $("#e").value, $("#p").value); }
     catch (e) { toast(e.message); }
   };
   $("#li").onclick = async () => {
@@ -171,7 +175,7 @@ onAuthStateChanged(auth, async u => {
   const r = doc(db, "users", u.uid);
   let s = await getDoc(r);
   if (!s.exists()) {
-    await setDoc(r, { name: pendingName || u.email.split("@")[0], email: u.email, phone: "", city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
+    await setDoc(r, { name: pendingName || u.email.split("@")[0], email: u.email, phone: pendingPhone, city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
     s = await getDoc(r);
   }
   myDoc = s.data();
@@ -286,11 +290,11 @@ function paySheet(a) {
     const b = ov.querySelector("#pb2");
     b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
     <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
-    <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
+    <input id="utr" inputmode="numeric" maxlength="12" placeholder="12 ank ki UPI Transaction ID (UTR)">
     <button class="btn" id="pd">Maine pay kar diya</button>`;
     b.querySelector("#pd").onclick = () => {
       const u = b.querySelector("#utr").value.trim();
-      if (u.length < 6) return toast("Sahi Transaction ID likho");
+      if (!/^\d{12}$/.test(u)) return toast("UTR sirf 12 ank ka number hota hai. Apne UPI app ki payment history se dekho.");
       close(); createPayment(a, "upi", u);
     };
   };
@@ -298,14 +302,14 @@ function paySheet(a) {
 
 async function createPayment(a, method, ref) {
   try {
-    await addDoc(collection(db, "payments"), {
+    await setDoc(doc(db, "payments", method + "_" + ref), {
       adId: a.id, adTitle: a.title, buyerId: me.uid, buyerName: myDoc.name,
       sellerId: a.userId, sellerName: a.sellerName, amount: a.price,
       commissionPercent: settings.commission, method, ref, status: "pending", createdAt: serverTimestamp()
     });
     toast("Payment note ho gayi. Admin verify karega ✅");
     go("profile", "orders");
-  } catch (e) { toast("Payment save nahi hui: " + e.message); }
+  } catch (e) { toast("Payment save nahi hui. Ye Transaction ID pehle use ho chuki hai ya galat hai."); }
 }
 
 /* ---------- sell ---------- */
