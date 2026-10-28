@@ -166,7 +166,7 @@ function viewAuth() {
       try { localStorage.setItem("vendor_pending", JSON.stringify({ name: pendingName, phone: ph, email: $("#e").value.trim().toLowerCase() })); } catch (x) {}
       const c = await createUserWithEmailAndPassword(auth, $("#e").value.trim(), $("#p").value);
       await updateProfile(c.user, { displayName: pendingName }).catch(() => {});
-      await sendEmailVerification(c.user).catch(() => {});
+      await sendEmailVerification(c.user).catch(e => toast("Verification mail nahi gayi: " + (e.code || e.message)));
     } catch (e) { toast(e.code === "auth/email-already-in-use" ? "Ye email pehle se registered hai. Login karo." : e.message); }
   };
   $("#li").onclick = async () => {
@@ -197,7 +197,7 @@ function viewVerify(u) {
   };
   $("#vr").onclick = async () => {
     try { await sendEmailVerification(auth.currentUser); toast("Link dobara bhej diya"); }
-    catch (e) { toast("Thodi der baad dobara try karo"); }
+    catch (e) { toast("Mail nahi gayi: " + (e.code || e.message)); }
   };
   $("#vl").onclick = () => signOut(auth);
 }
