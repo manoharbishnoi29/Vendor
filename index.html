@@ -59,6 +59,10 @@ a.btn{display:block;text-align:center;text-decoration:none}
 .cam{font-size:26px;padding:0 4px;cursor:pointer}
 .ov{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end}
 .sheet{background:#fff;width:100%;border-radius:16px 16px 0 0;padding:16px;max-height:88vh;overflow:auto}
+.tabs{flex-wrap:wrap}
+.tabs button{flex:1 1 22%}
+video{width:100%;max-height:320px;border-radius:10px;background:#000}
+.m video{max-width:240px}
 </style>
 </head>
 <body>
@@ -73,7 +77,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, updateProfile, sendSignInLinkToEmail, isSignInWithEmailLink, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { firebaseConfig } from "./config.js";
 
@@ -87,10 +91,13 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const today = () => new Date().toISOString().slice(0, 10);
 const DEF_CATS = ["Mobiles", "Vehicles", "Electronics", "Furniture", "Fashion", "Books", "Others"];
 const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confirm ✅", settled: "Seller ko paisa mil gaya ✅", rejected: "Reject ❌" };
+const PST = { pending: "Admin verify kar raha hai ⏳", approved: "Premium on ho gaya ✅", rejected: "Reject ❌" };
 
 let me = null, myDoc = null, cats = [], ads = [], favs = new Set(), pos = null, unsub = null;
 let pendingName = "", pendingPhone = "", imgs = [], chatMeta = {};
-let settings = { upiId: "", upiName: "Vendor", razorpayKey: "", commission: 5 };
+let settings = { upiId: "", upiName: "Vendor", razorpayKey: "", commission: 5, cloudinaryCloud: "", cloudinaryPreset: "", premiumMonth: 50, premiumYear: 600 };
+let delSet = new Set();
+const isPremium = () => (myDoc?.premiumUntil?.toMillis?.() || 0) > Date.now();
 let F = { q: "", cat: "", sort: "new" };
 
 const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); };
@@ -127,6 +134,30 @@ const compress = (file, max = 700) => new Promise(res => {
 });
 const thumb = src => resize(src, 110, 0.6);
 
+const checkVideo = file => new Promise((ok, no) => {
+  if (!isPremium()) return no(new Error("Video sirf Premium walon ke liye hai"));
+  if (!settings.cloudinaryCloud || !settings.cloudinaryPreset) return no(new Error("Video upload abhi on nahi hai (admin ne set nahi kiya)"));
+  if (file.size > 100 * 1024 * 1024) return no(new Error("Video 100 MB se chhota chuno"));
+  const v = document.createElement("video");
+  v.preload = "metadata";
+  v.onloadedmetadata = () => { URL.revokeObjectURL(v.src); v.duration > 240 ? no(new Error("Video 4 minute se zyada hai")) : ok(v.duration); };
+  v.onerror = () => no(new Error("Ye video file padh nahi pa rahe"));
+  v.src = URL.createObjectURL(file);
+});
+const uploadVideo = (file, onP) => new Promise((ok, no) => {
+  const fd = new FormData();
+  fd.append("file", file); fd.append("upload_preset", settings.cloudinaryPreset);
+  const x = new XMLHttpRequest();
+  x.open("POST", `https://api.cloudinary.com/v1_1/${encodeURIComponent(settings.cloudinaryCloud)}/video/upload`);
+  x.upload.onprogress = e => { if (e.lengthComputable && onP) onP(Math.round(e.loaded / e.total * 100)); };
+  x.onload = () => {
+    try { const r = JSON.parse(x.responseText); r.secure_url ? ok(r.secure_url) : no(new Error(r.error?.message || "Video upload fail")); }
+    catch (e) { no(new Error("Video upload fail")); }
+  };
+  x.onerror = () => no(new Error("Internet ya upload error"));
+  x.send(fd);
+});
+
 /* ---------- navigation ---------- */
 const views = { home: viewHome, sell: viewSell, chats: viewChats, profile: viewProfile, detail: viewDetail, chat: viewChat };
 function go(v, arg) {
@@ -156,7 +187,7 @@ function viewAuth() {
   <input id="p" type="password" placeholder="Password (min 6 akshar)">
   <button class="btn" id="su">Signup</button>
   <button class="btn alt" id="li">Login</button>
-  <button class="lnk" id="fp">Password bhool gaye?</button></div>`;
+  <button class="lnk" id="fp">Password bhool gaye?</button>${isSignInWithEmailLink(auth, location.href) ? '<p class="mut" style="color:#c0392b;text-align:center">Account delete confirm karne ke liye pehle login karo.</p>' : ""}</div>`;
   $("#su").onclick = async () => {
     const ph = $("#ph").value.trim();
     if (!$("#n").value.trim()) return toast("Naam likho");
@@ -215,6 +246,7 @@ onAuthStateChanged(auth, async u => {
     try { localStorage.removeItem("vendor_pending"); } catch (e) {}
   }
   myDoc = s.data();
+  if (myDoc.deleted) { me = u; await viewDeleted(u, myDoc); return; }
   if (myDoc.isBlocked) { await signOut(auth); alert("Aapka account block hai. Admin se baat karo."); return; }
   me = u;
   try { const c = await getDocs(collection(db, "categories")); cats = c.docs.map(d => d.data().name); } catch (e) {}
@@ -223,6 +255,7 @@ onAuthStateChanged(auth, async u => {
   const f = await getDocs(collection(db, "users", u.uid, "favs"));
   favs = new Set(f.docs.map(d => d.id));
   try { await setDoc(doc(db, "daily_activity", today() + "_" + u.uid), { uid: u.uid, date: today() }); } catch (e) {}
+  if (isSignInWithEmailLink(auth, location.href)) { handleDeleteLink(); return; }
   go("home");
 });
 
@@ -247,6 +280,7 @@ async function viewHome() {
   $("#q").oninput = e => { F.q = e.target.value; renderList(); };
   $("#so").value = F.sort;
   $("#so").onchange = async e => { F.sort = e.target.value; if (F.sort === "near") await getLoc(); renderList(); };
+  try { const dsn = await getDocs(query(collection(db, "users"), where("deleted", "==", true))); delSet = new Set(dsn.docs.map(d => d.id)); } catch (e) {}
   const s = await getDocs(query(collection(db, "ads"), where("status", "==", "approved"), limit(200)));
   ads = s.docs.map(d => ({ id: d.id, ...d.data() }));
   renderList();
@@ -254,7 +288,7 @@ async function viewHome() {
 function renderList() {
   const box = $("#list"); if (!box) return;
   const q = F.q.toLowerCase();
-  const L = ads.filter(a => (!F.cat || a.category === F.cat) && (!q || (a.title + " " + a.description).toLowerCase().includes(q)));
+  const L = ads.filter(a => !delSet.has(a.userId) && (!F.cat || a.category === F.cat) && (!q || (a.title + " " + a.description).toLowerCase().includes(q)));
   L.forEach(a => a.dist = pos && a.lat != null ? km(pos, a) : null);
   L.sort(F.sort === "near" ? (x, y) => (x.dist ?? 1e9) - (y.dist ?? 1e9)
     : F.sort === "lo" ? (x, y) => x.price - y.price
@@ -274,12 +308,15 @@ async function viewDetail(id) {
   let s; try { s = await getDoc(doc(db, "ads", id)); } catch (e) { return toast("Ad nahi mili"); }
   if (!s.exists()) return toast("Ad nahi mili");
   const a = { id, ...s.data() }, own = a.userId === me.uid;
+  let gone = false;
+  if (!own) { try { const sd = await getDoc(doc(db, "users", a.userId)); gone = !!(sd.exists() && sd.data().deleted); } catch (e) {} }
   A.innerHTML = `<div class="pad"><button class="lnk" id="bk">← Wapas</button>
   <div class="car">${(a.images || []).map(i => `<img src="${i}" alt="">`).join("")}</div>
+  ${a.videoUrl ? `<video controls playsinline preload="metadata" poster="${esc(a.videoUrl.replace(/\.[a-z0-9]+$/i, ".jpg"))}" src="${esc(a.videoUrl)}" style="margin-top:8px"></video>` : ""}
   <h2>₹${a.price}</h2><h3>${esc(a.title)}</h3>
   <p class="mut">📍 ${esc(a.city)} • ${esc(a.condition)} • ${esc(a.category)}</p>
   <p>${esc(a.description)}</p><p class="mut">Seller: ${esc(a.sellerName)}</p>
-  ${a.status === "sold" ? "<b>SOLD ✔</b>" : own ? "" : `<button class="btn" id="by">🛒 Buy karo (₹${a.price})</button><button class="btn alt" id="cb">💬 Seller se chat karo</button>`}
+  ${gone ? "<b>Is seller ka account available nahi hai</b>" : a.status === "sold" ? "<b>SOLD ✔</b>" : own ? "" : `<button class="btn" id="by">🛒 Buy karo (₹${a.price})</button><button class="btn alt" id="cb">💬 Seller se chat karo</button>`}
   <button class="btn alt" data-fav="${id}">${favs.has(id) ? "❤️ Saved" : "🤍 Save"}</button></div>`;
   $("#bk").onclick = () => go("home");
   if ($("#cb")) $("#cb").onclick = () => startChat(a);
@@ -349,10 +386,13 @@ async function createPayment(a, method, ref) {
 }
 
 /* ---------- sell ---------- */
-function viewSell() {
+async function viewSell() {
+  try { const f = await getDoc(doc(db, "users", me.uid)); if (f.exists()) myDoc = f.data(); } catch (e) {}
   imgs = [];
+  let vfile = null;
   A.innerHTML = `<div class="pad"><h2>Ad post karo</h2>
   <input type="file" id="im" accept="image/*" multiple><p class="mut">Max 4 photos</p><div id="pv" class="pv"></div>
+  ${isPremium() ? `<label class="mut">🎬 Video (max 4 minute) - Premium</label><input type="file" id="vd" accept="video/*"><p class="mut" id="vi"></p>` : `<p class="mut">🎬 Video upload sirf Premium ke liye (₹${settings.premiumMonth}/month ya ₹${settings.premiumYear}/year). <button class="lnk" id="gp" type="button">Premium lo</button></p>`}
   <input id="t" placeholder="Title (jaise: iPhone 11, 64GB)">
   <textarea id="d" placeholder="Description"></textarea>
   <select id="c">${cats.map(c => `<option>${esc(c)}</option>`).join("")}</select>
@@ -368,6 +408,12 @@ function viewSell() {
     $("#pv").innerHTML = imgs.map(i => `<img src="${i}" alt="">`).join("");
   };
   $("#lo").onclick = async () => { if (await getLoc()) toast("Location mil gayi ✅"); };
+  if ($("#vd")) $("#vd").onchange = async e => {
+    vfile = null; const f = e.target.files[0]; if (!f) return;
+    try { await checkVideo(f); vfile = f; $("#vi").textContent = "✅ " + f.name; }
+    catch (x) { toast(x.message); e.target.value = ""; $("#vi").textContent = ""; }
+  };
+  if ($("#gp")) $("#gp").onclick = () => go("profile", "premium");
   $("#go").onclick = async () => {
     const t = $("#t").value.trim(), p = Number($("#pr").value), ci = $("#ci").value.trim();
     if (!imgs.length || !t || !p || !ci) return toast("Photo, title, price aur city zaroori hai");
@@ -379,13 +425,15 @@ function viewSell() {
     $("#go").disabled = true;
     try {
       if (!myDoc.upi) { await updateDoc(doc(db, "users", me.uid), { upi: up }); myDoc.upi = up; }
+      let videoUrl = "";
+      if (vfile) { let last = -10; videoUrl = await uploadVideo(vfile, pc => { if (pc - last >= 5) { last = pc; $("#go").textContent = "Video upload " + pc + "%..."; } }); }
       await addDoc(collection(db, "ads"), {
         userId: me.uid, sellerName: myDoc.name, title: t, description: $("#d").value.trim(),
         category: $("#c").value, condition: $("#cd").value, price: p, city: ci,
-        lat: pos?.lat ?? null, lng: pos?.lng ?? null, images: imgs, status: "pending", createdAt: serverTimestamp()
+        lat: pos?.lat ?? null, lng: pos?.lng ?? null, images: imgs, status: "pending", createdAt: serverTimestamp(), ...(videoUrl ? { videoUrl } : {})
       });
       toast("Ad bhej di! Admin approve karega"); go("profile");
-    } catch (e) { toast(e.message); $("#go").disabled = false; }
+    } catch (e) { toast(e.message); $("#go").disabled = false; $("#go").textContent = "Ad post karo"; }
   };
 }
 
@@ -426,6 +474,7 @@ function viewChats() {
 const msgHtml = m => {
   const mine = m.from === me.uid ? "me" : "";
   if (m.type === "ad") return `<div class="m adm ${mine}" data-ad="${m.adId}"><img src="${m.adImg || ""}" alt=""><div><b>₹${m.adPrice}</b><div>${esc(m.adTitle)}</div><small>Ad dekhne ke liye tap karo</small></div></div>`;
+  if (m.type === "video") return `<div class="m ${mine}"><video controls playsinline preload="metadata" src="${esc(m.url)}"></video></div>`;
   if (m.type === "img") return `<div class="m ${mine}"><img class="pic" src="${m.img}" alt=""></div>`;
   return `<div class="m ${mine}">${esc(m.text)}</div>`;
 };
@@ -434,9 +483,10 @@ function viewChat(c) {
   A.innerHTML = `<div class="chat"><div class="ch-h"><button class="lnk" id="bk">←</button>
   <div><b>${esc(other)}</b><div class="mut">${esc(c.adTitle)}</div></div></div>
   <div id="ms" class="ms"></div>
-  <div class="ch-f"><label class="cam">📷<input type="file" id="cf" accept="image/*" hidden></label>
+  <div class="ch-f"><label class="cam">📷<input type="file" id="cf" accept="${isPremium() ? "image/*,video/*" : "image/*"}" hidden></label>
   <input id="mi" placeholder="Message likho..."><button class="btn" id="sd">Send</button></div></div>`;
   $("#bk").onclick = () => go("chats");
+  getDoc(doc(db, "users", me.uid)).then(f => { if (f.exists()) { myDoc = f.data(); const i = $("#cf"); if (i) i.accept = isPremium() ? "image/*,video/*" : "image/*"; } }).catch(() => {});
   unsub = onSnapshot(query(collection(db, "chats", c.id, "messages"), orderBy("createdAt")), s => {
     $("#ms").innerHTML = s.docs.map(d => msgHtml(d.data())).join("");
     $("#ms").scrollTop = 1e9;
@@ -449,8 +499,14 @@ function viewChat(c) {
   $("#mi").onkeydown = e => { if (e.key === "Enter") send(); };
   $("#cf").onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
-    try { toast("Photo bhej raha hoon..."); await sendMsg(c.id, { type: "img", img: await compress(f, 600) }, "📷 Photo"); }
-    catch (x) { toast(x.message); }
+    try {
+      if (f.type.startsWith("video/")) {
+        await checkVideo(f);
+        let last = -10; toast("Video upload ho rahi hai...");
+        const url = await uploadVideo(f, pc => { if (pc - last >= 10) { last = pc; toast("Video upload " + pc + "%"); } });
+        await sendMsg(c.id, { type: "video", url }, "🎬 Video");
+      } else { toast("Photo bhej raha hoon..."); await sendMsg(c.id, { type: "img", img: await compress(f, 600) }, "📷 Photo"); }
+    } catch (x) { toast(x.message); }
     e.target.value = "";
   };
 }
@@ -458,7 +514,7 @@ function viewChat(c) {
 /* ---------- profile ---------- */
 function viewProfile(tab = "ads") {
   A.innerHTML = `<div class="pad"><h2>👤 ${esc(myDoc.name)}</h2><p class="mut">${esc(myDoc.email)}</p>
-  <div class="tabs"><button data-t="ads">Meri Ads</button><button data-t="orders">Orders</button><button data-t="fav">Favorites</button><button data-t="edit">Edit</button></div>
+  <div class="tabs"><button data-t="ads">Meri Ads</button><button data-t="orders">Orders</button><button data-t="fav">Favorites</button><button data-t="premium">⭐ Premium</button><button data-t="edit">Edit</button></div>
   <div id="pb"></div><button class="btn alt" id="lg">Logout</button></div>`;
   const tabs = A.querySelectorAll(".tabs button");
   tabs.forEach(b => b.onclick = () => { tabs.forEach(x => x.classList.toggle("on", x === b)); pTab(b.dataset.t); });
@@ -499,16 +555,98 @@ async function pTab(t) {
     const L = (await Promise.all([...favs].map(i => getDoc(doc(db, "ads", i)).catch(() => null))))
       .filter(x => x && x.exists()).map(x => ({ id: x.id, ...x.data() }));
     box.innerHTML = L.length ? `<div class="grid" style="padding:0">${L.map(card).join("")}</div>` : `<p class="mut">Koi favorite nahi</p>`;
+  } else if (t === "premium") {
+    try { const f = await getDoc(doc(db, "users", me.uid)); if (f.exists()) myDoc = f.data(); } catch (e) {}
+    const prem = isPremium(), until = myDoc.premiumUntil?.toDate?.();
+    const rs = await getDocs(query(collection(db, "premium_requests"), where("uid", "==", me.uid)));
+    box.innerHTML = `<div class="row2"><b>${prem ? "⭐ Premium active" : "Premium nahi hai"}</b>
+      <div class="mut">${prem ? "Valid till: " + until.toLocaleDateString("en-IN") : "Premium se aap ad mein aur chat mein video (4 minute tak) daal sakte ho."}</div></div>
+      <div class="row2"><b>Plan chuno</b>
+      <button class="btn" data-plan="month">₹${settings.premiumMonth} / month</button>
+      <button class="btn alt" data-plan="year">₹${settings.premiumYear} / year</button><div id="pp"></div></div>
+      ${rs.docs.map(d => { const r = d.data(); return `<div class="row2"><b>${r.plan === "year" ? "Year" : "Month"} plan • ₹${r.amount}</b><br><span class="badge">${PST[r.status] || r.status}</span></div>`; }).join("")}`;
+    box.onclick = e => { const pl = e.target.dataset.plan; if (pl) payPremium(pl); };
   } else {
     box.innerHTML = `<input id="en" placeholder="Naam" value="${esc(myDoc.name)}"><input id="ep" placeholder="Phone" value="${esc(myDoc.phone)}">
     <input id="ec" placeholder="City" value="${esc(myDoc.city)}">
     <input id="eu" placeholder="Aapka UPI ID (paisa lene ke liye)" value="${esc(myDoc.upi || "")}">
-    <button class="btn" id="sv">Save changes</button>`;
+    <button class="btn" id="sv">Save changes</button>
+    <button class="btn alt" id="dl" style="color:#c0392b;border-color:#c0392b;margin-top:24px">🗑 Account delete karo</button>
+    <p class="mut">Delete karne ke liye aapki email par confirm link aayegi.</p>`;
+    $("#dl").onclick = startDelete;
     $("#sv").onclick = async () => {
       const d = { name: $("#en").value.trim() || myDoc.name, phone: $("#ep").value.trim(), city: $("#ec").value.trim(), upi: $("#eu").value.trim() };
       await updateDoc(doc(db, "users", me.uid), d); Object.assign(myDoc, d); toast("Profile save ho gayi");
     };
   }
+}
+function payPremium(plan) {
+  const amt = plan === "year" ? settings.premiumYear : settings.premiumMonth;
+  if (!settings.upiId) return toast("UPI abhi set nahi hai");
+  const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${amt}&cu=INR&tn=${encodeURIComponent("Vendor Premium " + plan)}`;
+  const b = $("#pp");
+  b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${amt}</b></p>
+  <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
+  <input id="pu" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
+  <button class="btn" id="pk">Maine pay kar diya</button>`;
+  $("#pk").onclick = async () => {
+    const u = $("#pu").value.trim(); if (u.length < 6) return toast("Sahi Transaction ID likho");
+    try {
+      await addDoc(collection(db, "premium_requests"), { uid: me.uid, name: myDoc.name, email: myDoc.email || "", plan, amount: amt, ref: u, status: "pending", createdAt: serverTimestamp() });
+      toast("Request bhej di. Admin verify karega ✅"); pTab("premium");
+    } catch (e) { toast("Request nahi gayi: " + e.message); }
+  };
+}
+
+/* ---------- account delete / recover ---------- */
+async function startDelete() {
+  if (!confirm("Kya aap sach mein apna account delete karna chahte ho?\n\nAapki email par ek confirm link bheji jayegi.")) return;
+  try {
+    await sendSignInLinkToEmail(auth, me.email, { url: location.origin + location.pathname, handleCodeInApp: true });
+    localStorage.setItem("vendor_del_email", me.email);
+    alert("Confirm link " + me.email + " par bhej di hai. Email kholo (Spam bhi dekho) aur link par tap karo.");
+  } catch (e) { toast("Link nahi gayi: " + (e.code || e.message)); }
+}
+async function handleDeleteLink() {
+  const clean = () => history.replaceState({}, "", location.pathname);
+  const email = localStorage.getItem("vendor_del_email") || me.email;
+  if ((me.email || "").toLowerCase() !== email.toLowerCase()) { clean(); toast("Ye link kisi dusre account ki hai. Sahi account se login karo."); go("home"); return; }
+  try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credentialWithLink(email, location.href)); }
+  catch (e) { clean(); toast("Link galat ya purani ho gayi. Dobara delete request karo."); go("home"); return; }
+  clean();
+  $("#nav").hidden = true;
+  A.innerHTML = `<div class="box"><h2 style="text-align:center">Email verify ho gayi ✅</h2>
+  <p class="mut" style="text-align:center">Ab final confirm karo. Delete hone ke baad aap app use nahi kar paoge. Galti se hua to recover request bhej sakte ho.</p>
+  <button class="btn" id="dy" style="background:#c0392b">Haan, mera account delete karo</button>
+  <button class="btn alt" id="dn">Nahi, wapas jao</button></div>`;
+  $("#dn").onclick = () => { try { localStorage.removeItem("vendor_del_email"); } catch (e) {} go("home"); };
+  $("#dy").onclick = async () => {
+    try {
+      await updateDoc(doc(db, "users", me.uid), { deleted: true, deletedAt: serverTimestamp(), deletedBy: "user" });
+      try { localStorage.removeItem("vendor_del_email"); } catch (e) {}
+      await signOut(auth);
+      alert("Aapka account delete ho gaya. Galti se hua ho to dobara login karke recover request bhej sakte ho.");
+    } catch (e) { toast("Delete nahi hua: " + e.message); }
+  };
+}
+async function viewDeleted(u, d) {
+  $("#nav").hidden = true;
+  let req = null;
+  try { const r = await getDoc(doc(db, "recover_requests", u.uid)); if (r.exists()) req = r.data(); } catch (e) {}
+  const st = req?.status;
+  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:90px;display:block;margin:0 auto">
+  <h2 style="text-align:center">Account delete ho chuka hai</h2>
+  ${d.permanent ? `<p class="mut" style="text-align:center">Ye account permanently delete ho gaya hai.</p>` : `<p class="mut" style="text-align:center">Galti se delete hua ho to recover request bhejo. Admin approve karega to account wapas aa jayega.</p>
+  ${st === "pending" ? `<p style="text-align:center"><b>Request bhej di hai. Admin ke approve karne ka intezaar karo.</b></p>` : st === "rejected" ? `<p style="text-align:center;color:#c0392b">Admin ne recover request reject kar di.</p>` : ""}
+  <button class="btn" id="rq" ${st === "pending" ? "disabled" : ""}>♻️ Recover request bhejo</button>
+  <button class="btn alt" id="rf">Status refresh karo</button>`}
+  <button class="lnk" id="vl" style="width:100%">Logout</button></div>`;
+  if ($("#rq")) $("#rq").onclick = async () => {
+    try { await setDoc(doc(db, "recover_requests", u.uid), { uid: u.uid, name: d.name || "", email: d.email || "", status: "pending", createdAt: serverTimestamp() }); toast("Recover request bhej di ✅"); viewDeleted(u, d); }
+    catch (e) { toast("Request nahi gayi: " + e.message); }
+  };
+  if ($("#rf")) $("#rf").onclick = () => location.reload();
+  $("#vl").onclick = () => signOut(auth);
 }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
