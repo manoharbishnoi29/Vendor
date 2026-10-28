@@ -390,20 +390,26 @@ function viewSell() {
 }
 
 /* ---------- chat ---------- */
-async function sendMsg(cid, m, preview) {
-  await setDoc(doc(db, "chats", cid), { lastMessage: preview, updatedAt: serverTimestamp() }, { merge: true });
+const pairId = (x, y) => [x, y].sort().join("_");
+const otherName = c => c.names
+  ? (c.names[(c.participants || []).find(x => x !== me.uid)] || "User")
+  : (c.buyerId === me.uid ? c.sellerName : c.buyerName);
+async function sendMsg(cid, m, preview, extra = {}) {
+  await setDoc(doc(db, "chats", cid), { lastMessage: preview, updatedAt: serverTimestamp(), ...extra }, { merge: true });
   await addDoc(collection(db, "chats", cid, "messages"), { from: me.uid, createdAt: serverTimestamp(), ...m });
 }
 async function startChat(a) {
-  const id = a.id + "_" + me.uid;
-  const data = { participants: [me.uid, a.userId], adId: a.id, adTitle: a.title, buyerId: me.uid, sellerId: a.userId, buyerName: myDoc.name, sellerName: a.sellerName };
+  const id = pairId(me.uid, a.userId);
+  const data = { participants: [me.uid, a.userId].sort(), names: { [me.uid]: myDoc.name, [a.userId]: a.sellerName }, adTitle: a.title };
   try {
     await setDoc(doc(db, "chats", id), data, { merge: true });
     const cs = await getDoc(doc(db, "chats", id));
-    if (!cs.data().lastMessage) {
-      await sendMsg(id, { type: "ad", adId: a.id, adTitle: a.title, adPrice: a.price, adImg: await thumb(a.images[0]) }, "📎 Ad: " + a.title);
+    const full = { id, ...cs.data() };
+    if (cs.data().lastAdId !== a.id) {
+      await sendMsg(id, { type: "ad", adId: a.id, adTitle: a.title, adPrice: a.price, adImg: await thumb(a.images[0]) }, "📎 Ad: " + a.title, { lastAdId: a.id, adTitle: a.title });
+      full.lastAdId = a.id; full.adTitle = a.title;
     }
-    go("chat", { id, ...data });
+    go("chat", full);
   } catch (e) { toast(e.message); }
 }
 function viewChats() {
@@ -412,7 +418,7 @@ function viewChats() {
     const L = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.lastMessage)
       .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
     chatMeta = {}; L.forEach(c => chatMeta[c.id] = c);
-    $("#cl").innerHTML = L.length ? L.map(c => `<div class="row2" data-chat="${c.id}"><b>${esc(c.buyerId === me.uid ? c.sellerName : c.buyerName)}</b>
+    $("#cl").innerHTML = L.length ? L.map(c => `<div class="row2" data-chat="${c.id}"><b>${esc(otherName(c))}</b>
       <div class="mut">${esc(c.adTitle)}</div><div>${esc(c.lastMessage)}</div></div>`).join("")
       : `<p class="mut">Abhi koi chat nahi. Kisi ad par "Seller se chat karo" dabao.</p>`;
   });
@@ -424,7 +430,7 @@ const msgHtml = m => {
   return `<div class="m ${mine}">${esc(m.text)}</div>`;
 };
 function viewChat(c) {
-  const other = c.buyerId === me.uid ? c.sellerName : c.buyerName;
+  const other = otherName(c);
   A.innerHTML = `<div class="chat"><div class="ch-h"><button class="lnk" id="bk">←</button>
   <div><b>${esc(other)}</b><div class="mut">${esc(c.adTitle)}</div></div></div>
   <div id="ms" class="ms"></div>
