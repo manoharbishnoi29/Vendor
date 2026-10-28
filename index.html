@@ -73,7 +73,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { firebaseConfig } from "./config.js";
 
@@ -161,8 +161,13 @@ function viewAuth() {
     const ph = $("#ph").value.trim();
     if (!$("#n").value.trim()) return toast("Naam likho");
     if (!/^[6-9]\d{9}$/.test(ph)) return toast("Sahi 10 ank ka mobile number likho");
-    try { pendingName = $("#n").value.trim(); pendingPhone = ph; await createUserWithEmailAndPassword(auth, $("#e").value, $("#p").value); }
-    catch (e) { toast(e.message); }
+    try {
+      pendingName = $("#n").value.trim(); pendingPhone = ph;
+      try { localStorage.setItem("vendor_pending", JSON.stringify({ name: pendingName, phone: ph, email: $("#e").value.trim().toLowerCase() })); } catch (x) {}
+      const c = await createUserWithEmailAndPassword(auth, $("#e").value.trim(), $("#p").value);
+      await updateProfile(c.user, { displayName: pendingName }).catch(() => {});
+      await sendEmailVerification(c.user).catch(() => {});
+    } catch (e) { toast(e.code === "auth/email-already-in-use" ? "Ye email pehle se registered hai. Login karo." : e.message); }
   };
   $("#li").onclick = async () => {
     try { await signInWithEmailAndPassword(auth, $("#e").value, $("#p").value); }
@@ -174,13 +179,40 @@ function viewAuth() {
   };
 }
 
+const pending = email => {
+  try { const p = JSON.parse(localStorage.getItem("vendor_pending") || "{}"); return p.email === (email || "").toLowerCase() ? p : {}; }
+  catch (e) { return {}; }
+};
+function viewVerify(u) {
+  $("#nav").hidden = true;
+  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:90px;display:block;margin:0 auto">
+  <h2 style="text-align:center">Email verify karo</h2>
+  <p class="mut" style="text-align:center">Humne <b>${esc(u.email)}</b> par verification link bheja hai. Email kholo (Spam / Promotions bhi dekho), link par tap karo, phir yahan wapas aao.</p>
+  <button class="btn" id="vd">Maine verify kar liya</button>
+  <button class="btn alt" id="vr">Link dobara bhejo</button>
+  <button class="lnk" id="vl" style="width:100%">Galat email? Logout karke dobara signup karo</button></div>`;
+  $("#vd").onclick = async () => {
+    try { await u.reload(); } catch (e) {}
+    if (auth.currentUser?.emailVerified) location.reload(); else toast("Abhi verify nahi hua. Email ka link kholo.");
+  };
+  $("#vr").onclick = async () => {
+    try { await sendEmailVerification(auth.currentUser); toast("Link dobara bhej diya"); }
+    catch (e) { toast("Thodi der baad dobara try karo"); }
+  };
+  $("#vl").onclick = () => signOut(auth);
+}
+
 onAuthStateChanged(auth, async u => {
   if (!u) { me = null; viewAuth(); return; }
   const r = doc(db, "users", u.uid);
-  let s = await getDoc(r);
-  if (!s.exists()) {
-    await setDoc(r, { name: pendingName || u.email.split("@")[0], email: u.email, phone: pendingPhone, city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
+  let s = null;
+  try { s = await getDoc(r); } catch (e) {}
+  if (!u.emailVerified && !(s && s.exists())) { viewVerify(u); return; }
+  if (!s || !s.exists()) {
+    const p = pending(u.email);
+    await setDoc(r, { name: p.name || u.displayName || u.email.split("@")[0], email: u.email, phone: p.phone || "", city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
     s = await getDoc(r);
+    try { localStorage.removeItem("vendor_pending"); } catch (e) {}
   }
   myDoc = s.data();
   if (myDoc.isBlocked) { await signOut(auth); alert("Aapka account block hai. Admin se baat karo."); return; }
