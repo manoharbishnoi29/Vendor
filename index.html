@@ -78,7 +78,7 @@ video{width:100%;max-height:320px;border-radius:10px;background:#000}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, updateProfile, sendSignInLinkToEmail, isSignInWithEmailLink, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { firebaseConfig } from "./config.js";
 
 const app = initializeApp(firebaseConfig);
@@ -89,6 +89,8 @@ const $ = s => document.querySelector(s);
 const A = $("#app");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const today = () => new Date().toISOString().slice(0, 10);
+const localDate = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const fmtD = x => x ? x.split("-").reverse().join("/") : "";
 const DEF_CATS = ["Mobiles", "Vehicles", "Electronics", "Furniture", "Fashion", "Books", "Others"];
 const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confirm ✅", settled: "Seller ko paisa mil gaya ✅", rejected: "Reject ❌" };
 const PST = { pending: "Admin verify kar raha hai ⏳", approved: "Premium on ho gaya ✅", rejected: "Reject ❌" };
@@ -257,6 +259,7 @@ onAuthStateChanged(auth, async u => {
   try { await setDoc(doc(db, "daily_activity", today() + "_" + u.uid), { uid: u.uid, date: today() }); } catch (e) {}
   if (isSignInWithEmailLink(auth, location.href)) { handleDeleteLink(); return; }
   go("home");
+  checkDeliveries();
 });
 
 /* ---------- home ---------- */
@@ -323,63 +326,111 @@ async function viewDetail(id) {
   if ($("#by")) $("#by").onclick = () => paySheet(a);
 }
 
+const STATES = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"];
+
 function paySheet(a) {
   const ov = document.createElement("div");
   ov.className = "ov";
-  ov.innerHTML = `<div class="sheet"><h3>Payment</h3>
-  <p><b>${esc(a.title)}</b><br>Total: <b>₹${a.price}</b></p>
-  <button class="btn" id="pm1">💳 Online Payment (UPI / Card / NetBanking)</button>
-  <button class="btn alt" id="pm2">📱 UPI se seedha pay karo</button>
-  <div id="pb2"></div>
-  <p class="mut">Paisa pehle Vendor ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
-  <button class="lnk" id="px">Cancel</button></div>`;
   document.body.appendChild(ov);
   const close = () => ov.remove();
-  ov.querySelector("#px").onclick = close;
   ov.onclick = e => { if (e.target === ov) close(); };
+  let sv = {}; try { sv = JSON.parse(localStorage.getItem("vendor_addr") || "{}"); } catch (e) {}
+  let gps = null;
 
-  ov.querySelector("#pm1").onclick = async () => {
-    if (!settings.razorpayKey) return toast("Online payment abhi on nahi hai. UPI se pay karo.");
-    if (!window.Razorpay) {
-      await new Promise((ok, no) => {
-        const sc = document.createElement("script");
-        sc.src = "https://checkout.razorpay.com/v1/checkout.js"; sc.onload = ok; sc.onerror = no;
-        document.head.appendChild(sc);
-      }).catch(() => toast("Payment page load nahi hua"));
-    }
-    if (!window.Razorpay) return;
-    new window.Razorpay({
-      key: settings.razorpayKey, amount: Math.round(a.price * 100), currency: "INR",
-      name: "Vendor", description: a.title,
-      prefill: { name: myDoc.name, email: myDoc.email },
-      theme: { color: "#3b3fd8" },
-      handler: r => { close(); createPayment(a, "razorpay", r.razorpay_payment_id); }
-    }).open();
-  };
-
-  ov.querySelector("#pm2").onclick = () => {
-    if (!settings.upiId) return toast("UPI abhi set nahi hai");
-    const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("Vendor " + a.title.slice(0, 30))}`;
-    const b = ov.querySelector("#pb2");
-    b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
-    <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
-    <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
-    <button class="btn" id="pd">Maine pay kar diya</button>`;
-    b.querySelector("#pd").onclick = () => {
-      const u = b.querySelector("#utr").value.trim();
-      if (u.length < 6) return toast("Sahi Transaction ID likho");
-      close(); createPayment(a, "upi", u);
+  const showForm = () => {
+    ov.innerHTML = `<div class="sheet"><h3>Delivery details</h3>
+    <p><b>${esc(a.title)}</b> • ₹${a.price}</p>
+    <p class="mut">Ye details pehle admin ko milengi. Payment approve hone ke baad seller ko bhi jayengi.</p>
+    <input id="dn" placeholder="Aapka naam" value="${esc(sv.name || myDoc.name || "")}">
+    <input id="dp" type="tel" inputmode="numeric" maxlength="10" placeholder="Contact number (10 ank)" value="${esc(sv.phone || myDoc.phone || "")}">
+    <b class="mut">Aapki location</b>
+    <select id="ds"><option value="">State chuno</option>${STATES.map(x => `<option ${sv.state === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+    <input id="dd" placeholder="District" value="${esc(sv.district || "")}">
+    <input id="dc" placeholder="City / Gaon" value="${esc(sv.city || "")}">
+    <input id="dz" type="tel" inputmode="numeric" maxlength="6" placeholder="Pin code (6 ank)" value="${esc(sv.pin || "")}">
+    <b class="mut">Delivery location</b>
+    <textarea id="da" placeholder="Delivery ka poora pata (ghar / gali / mohalla)">${esc(sv.address || "")}</textarea>
+    <input id="dl" placeholder="Landmark (jaise: school ke paas)" value="${esc(sv.landmark || "")}">
+    <button class="btn alt" id="dg" type="button">📍 GPS location bhi jodo (optional)</button>
+    <p class="mut" id="dgi"></p>
+    <button class="btn" id="dgo">Aage badho: Payment</button>
+    <button class="lnk" id="px">Cancel</button></div>`;
+    const g = s => ov.querySelector(s);
+    g("#px").onclick = close;
+    g("#dg").onclick = async () => { const l = await getLoc(); if (l) { gps = l; g("#dgi").textContent = "✅ GPS location mil gayi"; } };
+    g("#dgo").onclick = () => {
+      const d = { name: g("#dn").value.trim(), phone: g("#dp").value.trim(), state: g("#ds").value, district: g("#dd").value.trim(), city: g("#dc").value.trim(), pin: g("#dz").value.trim(), address: g("#da").value.trim(), landmark: g("#dl").value.trim() };
+      if (!d.name) return toast("Naam likho");
+      if (!/^[6-9]\d{9}$/.test(d.phone)) return toast("Sahi 10 ank ka contact number likho");
+      if (!d.state || !d.district || !d.city) return toast("State, district aur city likho");
+      if (!/^\d{6}$/.test(d.pin)) return toast("Sahi 6 ank ka pin code likho");
+      if (!d.address) return toast("Delivery ka pata likho");
+      if (!d.landmark) return toast("Landmark likho");
+      try { localStorage.setItem("vendor_addr", JSON.stringify(d)); } catch (e) {}
+      sv = d;
+      showPay({ ...d, gps: gps || (pos ? { lat: pos.lat, lng: pos.lng } : null) });
     };
   };
+
+  const showPay = det => {
+    ov.innerHTML = `<div class="sheet"><h3>Payment</h3>
+    <p><b>${esc(a.title)}</b><br>Total: <b>₹${a.price}</b></p>
+    <button class="btn" id="pm1">💳 Online Payment (UPI / Card / NetBanking)</button>
+    <button class="btn alt" id="pm2">📱 UPI se seedha pay karo</button>
+    <div id="pb2"></div>
+    <p class="mut">Paisa pehle Vendor ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
+    <button class="lnk" id="pbk">← Details badlo</button> <button class="lnk" id="px">Cancel</button></div>`;
+    ov.querySelector("#px").onclick = close;
+    ov.querySelector("#pbk").onclick = showForm;
+
+    ov.querySelector("#pm1").onclick = async () => {
+      if (!settings.razorpayKey) return toast("Online payment abhi on nahi hai. UPI se pay karo.");
+      if (!window.Razorpay) {
+        await new Promise((ok, no) => {
+          const sc = document.createElement("script");
+          sc.src = "https://checkout.razorpay.com/v1/checkout.js"; sc.onload = ok; sc.onerror = no;
+          document.head.appendChild(sc);
+        }).catch(() => toast("Payment page load nahi hua"));
+      }
+      if (!window.Razorpay) return;
+      new window.Razorpay({
+        key: settings.razorpayKey, amount: Math.round(a.price * 100), currency: "INR",
+        name: "Vendor", description: a.title,
+        prefill: { name: det.name, email: myDoc.email, contact: det.phone },
+        theme: { color: "#3b3fd8" },
+        handler: r => { close(); createPayment(a, "razorpay", r.razorpay_payment_id, det); }
+      }).open();
+    };
+
+    ov.querySelector("#pm2").onclick = () => {
+      if (!settings.upiId) return toast("UPI abhi set nahi hai");
+      const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("Vendor " + a.title.slice(0, 30))}`;
+      const b = ov.querySelector("#pb2");
+      b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
+      <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
+      <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
+      <button class="btn" id="pd">Maine pay kar diya</button>`;
+      b.querySelector("#pd").onclick = () => {
+        const u = b.querySelector("#utr").value.trim();
+        if (u.length < 6) return toast("Sahi Transaction ID likho");
+        close(); createPayment(a, "upi", u, det);
+      };
+    };
+  };
+  showForm();
 }
 
-async function createPayment(a, method, ref) {
+async function createPayment(a, method, ref, det) {
   try {
-    await addDoc(collection(db, "payments"), {
+    const pref = doc(collection(db, "payments"));
+    const batch = writeBatch(db);
+    batch.set(pref, {
       adId: a.id, adTitle: a.title, buyerId: me.uid, buyerName: myDoc.name,
       sellerId: a.userId, sellerName: a.sellerName, amount: a.price,
-      commissionPercent: settings.commission, method, ref, status: "pending", createdAt: serverTimestamp()
+      commissionPercent: settings.commission, method, ref, status: "pending", deliveryStatus: "pending", createdAt: serverTimestamp()
     });
+    batch.set(doc(pref, "private", "details"), { ...det, buyerId: me.uid, createdAt: serverTimestamp() });
+    await batch.commit();
     toast("Payment note ho gayi. Admin verify karega ✅");
     go("profile", "orders");
   } catch (e) { toast("Payment save nahi hui: " + e.message); }
@@ -542,15 +593,30 @@ async function pTab(t) {
       getDocs(query(collection(db, "payments"), where("buyerId", "==", me.uid))),
       getDocs(query(collection(db, "payments"), where("sellerId", "==", me.uid)))
     ]);
+    const dets = {}, OM = {};
+    await Promise.all(s.docs.filter(d => ["verified", "settled"].includes(d.data().status)).map(async d => {
+      try { const x = await getDoc(doc(db, "payments", d.id, "private", "details")); if (x.exists()) dets[d.id] = x.data(); } catch (e) {}
+    }));
+    const dlv = (p, id, buyer) => {
+      if (!["verified", "settled"].includes(p.status)) return "";
+      if (p.deliveryStatus === "received") return `<div class="mut">✅ Product mil gaya (buyer ne confirm kiya)</div>`;
+      if (p.deliveryStatus === "not_received") return `<div class="mut">⚠️ Buyer ko product nahi mila. Admin nayi tarikh batayega.</div>`;
+      return `<div class="mut">📅 Product milne ki tarikh: <b>${fmtD(p.deliveryDate)}</b></div>` +
+        (buyer && p.deliveryDate && p.deliveryDate <= localDate() ? `<button class="btn" data-recv="${id}">📦 Product mila? Jawab do</button>` : "");
+    };
     const row = (d, buyer) => {
-      const p = d.data(), get = Math.round(p.amount * (100 - p.commissionPercent)) / 100;
+      const p = d.data(), get = Math.round(p.amount * (100 - p.commissionPercent)) / 100, x = dets[d.id];
+      OM[d.id] = p;
       return `<div class="row2"><b>${esc(p.adTitle)}</b> • ₹${p.amount}<br>
       <span class="badge">${ST[p.status] || p.status}</span>
-      <div class="mut">${buyer ? "Maine kharida (seller: " + esc(p.sellerName) + ")" : "Maine becha (buyer: " + esc(p.buyerName) + ") • Aapko milega: ₹" + get}</div></div>`;
+      <div class="mut">${buyer ? "Maine kharida (seller: " + esc(p.sellerName) + ")" : "Maine becha (buyer: " + esc(p.buyerName) + ") • Aapko milega: ₹" + get}</div>
+      ${dlv(p, d.id, buyer)}
+      ${!buyer ? (x ? `<div class="mut" style="margin-top:6px"><b>📦 Buyer ki details</b><br>👤 ${esc(x.name)} • 📱 <a href="tel:${esc(x.phone)}">${esc(x.phone)}</a><br>📍 ${esc(x.city)}, ${esc(x.district)}, ${esc(x.state)} - ${esc(x.pin)}<br>🚚 Delivery: ${esc(x.address)}<br>Landmark: ${esc(x.landmark)}${x.gps ? ` • <a href="https://www.google.com/maps?q=${x.gps.lat},${x.gps.lng}" target="_blank">Map</a>` : ""}</div>` : `<div class="mut">Buyer ki details payment approve hone ke baad milengi.</div>`) : ""}</div>`;
     };
     box.innerHTML = (b.empty && s.empty) ? `<p class="mut">Abhi koi order nahi</p>`
       : b.docs.map(d => row(d, true)).join("") + s.docs.map(d => row(d, false)).join("");
     if (!s.empty && !myDoc.upi) box.innerHTML = `<p class="mut">⚠️ Paisa lene ke liye Edit tab mein apna UPI ID daalo.</p>` + box.innerHTML;
+    box.onclick = e => { const id = e.target.dataset.recv; if (id) askReceived(id, OM[id], () => pTab("orders")); };
   } else if (t === "fav") {
     const L = (await Promise.all([...favs].map(i => getDoc(doc(db, "ads", i)).catch(() => null))))
       .filter(x => x && x.exists()).map(x => ({ id: x.id, ...x.data() }));
@@ -580,6 +646,32 @@ async function pTab(t) {
     };
   }
 }
+function askReceived(id, p, done) {
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = `<div class="sheet"><h3>📦 Product mila?</h3>
+  <p><b>${esc(p.adTitle)}</b><br>Product milne ki tarikh <b>${fmtD(p.deliveryDate)}</b> thi. Kya aapko product mil gaya?</p>
+  <button class="btn" id="ry">✅ Haan, product mil gaya</button>
+  <button class="btn alt" id="rn" style="color:#c0392b;border-color:#c0392b">❌ Nahi mila</button>
+  <button class="lnk" id="rl">Baad mein puchna</button></div>`;
+  document.body.appendChild(ov);
+  const fin = () => { ov.remove(); if (done) done(); };
+  const upd = async (data, msg) => {
+    try { await updateDoc(doc(db, "payments", id), data); toast(msg); } catch (e) { toast("Save nahi hua: " + e.message); }
+    fin();
+  };
+  ov.querySelector("#rl").onclick = fin;
+  ov.querySelector("#ry").onclick = () => upd({ deliveryStatus: "received", receivedAt: serverTimestamp() }, "Shukriya! Admin ko bata diya ✅");
+  ov.querySelector("#rn").onclick = () => upd({ deliveryStatus: "not_received", notReceivedAt: serverTimestamp() }, "Admin ko bata diya. Wo nayi tarikh batayega.");
+}
+async function checkDeliveries() {
+  try {
+    const s = await getDocs(query(collection(db, "payments"), where("buyerId", "==", me.uid)));
+    const L = s.docs.filter(d => { const p = d.data(); return ["verified", "settled"].includes(p.status) && p.deliveryDate && p.deliveryDate <= localDate() && (p.deliveryStatus || "pending") === "pending"; });
+    const next = i => { if (i < L.length) askReceived(L[i].id, L[i].data(), () => next(i + 1)); };
+    next(0);
+  } catch (e) {}
+}
+
 function payPremium(plan) {
   const amt = plan === "year" ? settings.premiumYear : settings.premiumMonth;
   if (!settings.upiId) return toast("UPI abhi set nahi hai");
@@ -600,6 +692,7 @@ function payPremium(plan) {
 
 /* ---------- account delete / recover ---------- */
 async function startDelete() {
+  if (myDoc.role === "admin") return toast("Admin account delete nahi ho sakta");
   if (!confirm("Kya aap sach mein apna account delete karna chahte ho?\n\nAapki email par ek confirm link bheji jayegi.")) return;
   try {
     await sendSignInLinkToEmail(auth, me.email, { url: location.origin + location.pathname, handleCodeInApp: true });
