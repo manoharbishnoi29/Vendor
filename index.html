@@ -3,745 +3,424 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vendor</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f6b82">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<title>Vendor Admin</title>
 <style>
 :root{--p:#3b3fd8;--ink:#151826;--bg:#f2f4f7;--mut:#6b7285;--line:#d9dde6}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:64px}
-.pad,.box{padding:14px;max-width:700px;margin:auto}.box{margin-top:40px}
-h1{font-size:30px;margin:0 0 4px}
-input,select,textarea,.btn{width:100%;padding:12px;margin:5px 0;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
-textarea{min-height:90px;font-family:inherit}
-.btn{background:var(--p);color:#fff;border:0;font-weight:600}
-.btn.alt{background:#fff;color:var(--p);border:1px solid var(--p)}
-.btn:disabled{opacity:.5}
-a.btn{display:block;text-align:center;text-decoration:none}
-.lnk{background:none;border:0;color:var(--p);font-size:15px;padding:8px 0;cursor:pointer}
-.mut{color:var(--mut);font-size:13px;margin:3px 0}
-.top{position:sticky;top:0;background:#fff;padding:10px;z-index:5;box-shadow:0 1px 4px #0002}
-.top input,.top select{margin:3px 0}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
-.chips span{white-space:nowrap;padding:6px 12px;border-radius:16px;background:#e6e9f0;font-size:14px}
-.chips span.on{background:var(--p);color:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;max-width:900px;margin:auto}
-.card{background:#fff;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 1px 3px #0002}
-.card img{width:100%;height:130px;object-fit:cover;display:block;background:#e6e9f0}
-.card .b{padding:8px}
-.card .h{position:absolute;top:6px;right:6px;background:#fff;border:0;border-radius:50%;width:32px;height:32px;font-size:16px}
-.car{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:6px}
-.car img{width:100%;flex:none;scroll-snap-align:center;max-height:300px;object-fit:cover;border-radius:10px}
-.pv{display:flex;gap:6px;flex-wrap:wrap}.pv img{width:70px;height:70px;object-fit:cover;border-radius:6px}
-#nav{position:fixed;bottom:0;left:0;right:0;height:56px;background:#fff;display:flex;border-top:1px solid var(--line);z-index:9}
-#nav[hidden]{display:none}
-#nav button{flex:1;border:0;background:none;font-size:12px;color:var(--mut)}
-#nav button.on{color:var(--p);font-weight:700}
-#toast{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:20px;z-index:40;max-width:90%;text-align:center}
-.row2{background:#fff;padding:12px;border-radius:10px;margin:8px 0}
-.tabs{display:flex;gap:6px;margin:8px 0}
-.tabs button{flex:1;padding:10px 4px;border:0;border-radius:8px;background:#e6e9f0;font-size:13px}
-.tabs button.on{background:var(--p);color:#fff}
-.badge{font-size:12px;padding:2px 8px;border-radius:10px;background:#e6e9f0}
-.chat{display:flex;flex-direction:column;height:calc(100vh - 56px)}
-.ch-h{display:flex;gap:8px;align-items:center;padding:8px;background:#fff;border-bottom:1px solid var(--line)}
-.ms{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
-.m{max-width:75%;padding:8px 12px;border-radius:14px;background:#fff;align-self:flex-start;word-break:break-word}
-.m.me{background:var(--p);color:#fff;align-self:flex-end}
-.m img.pic{max-width:220px;width:100%;border-radius:8px;display:block}
-.m.adm{display:flex;gap:8px;cursor:pointer;align-items:center}
-.m.adm img{width:56px;height:56px;object-fit:cover;border-radius:6px}
-.m.adm small{opacity:.8}
-.ch-f{display:flex;gap:6px;padding:8px;background:#fff;align-items:center}
-.ch-f input{margin:0}.ch-f .btn{width:80px;margin:0}
-.cam{font-size:26px;padding:0 4px;cursor:pointer}
-.ov{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end}
-.sheet{background:#fff;width:100%;border-radius:16px 16px 0 0;padding:16px;max-height:88vh;overflow:auto}
-.tabs{flex-wrap:wrap}
-.tabs button{flex:1 1 22%}
-video{width:100%;max-height:320px;border-radius:10px;background:#000}
-.m video{max-width:240px}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:900px;margin:auto;padding:14px}
+input,select,button{padding:10px;font-size:15px;border:1px solid var(--line);border-radius:8px;margin:4px 0;background:#fff;color:var(--ink)}
+input,select{width:100%}
+button{background:var(--p);color:#fff;border:0;cursor:pointer;margin-right:6px}
+button.g{background:#fff;color:var(--p);border:1px solid var(--p)}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.nav button{background:#e6e9f0;color:var(--ink)}.nav button.on{background:var(--p);color:#fff}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats div{background:#fff;padding:16px;border-radius:10px;font-size:14px;color:var(--mut)}
+.stats b{display:block;font-size:30px;color:var(--ink)}
+.c{background:#fff;padding:12px;border-radius:10px;margin:8px 0}
+.im{display:flex;gap:6px;overflow-x:auto}.im img{height:110px;border-radius:8px}
+.bar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}
+.bar span{width:44px;color:var(--mut)}.bar i{display:block;height:14px;background:var(--p);border-radius:4px;min-width:2px}
+.msg{background:#eef0f6;padding:8px 12px;border-radius:10px;margin:2px 0 8px;display:inline-block;max-width:90%;word-break:break-word}
+small{color:var(--mut)}
+label{font-size:13px;color:var(--mut)}
+video{max-width:100%;max-height:260px;border-radius:8px;background:#000}
+.ov{position:fixed;inset:0;background:#0007;z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:700px;border-radius:16px 16px 0 0;padding:16px;max-height:88vh;overflow:auto}
+.sheet button{margin:6px 6px 0 0}
 </style>
 </head>
 <body>
-<div id="app"></div>
-<nav id="nav" hidden>
-  <button data-v="home">🏠<br>Home</button>
-  <button data-v="sell">➕<br>Becho</button>
-  <button data-v="chats">💬<br>Chats</button>
-  <button data-v="profile">👤<br>Profile</button>
-</nav>
-<div id="toast"></div>
+<div class="wrap" id="root"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, updateProfile, sendSignInLinkToEmail, isSignInWithEmailLink, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, getCountFromServer, serverTimestamp, Timestamp, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { firebaseConfig } from "./config.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const $ = s => document.querySelector(s);
-const A = $("#app");
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = s => document.querySelector(s), R = $("#root");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const today = () => new Date().toISOString().slice(0, 10);
-const localDate = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-const fmtD = x => x ? x.split("-").reverse().join("/") : "";
 const DEF_CATS = ["Mobiles", "Vehicles", "Electronics", "Furniture", "Fashion", "Books", "Others"];
-const ST = { pending: "Admin verify kar raha hai ⏳", verified: "Payment confirm ✅", settled: "Seller ko paisa mil gaya ✅", rejected: "Reject ❌" };
-const PST = { pending: "Admin verify kar raha hai ⏳", approved: "Premium on ho gaya ✅", rejected: "Reject ❌" };
+const comm = p => Math.round(p.amount * (p.commissionPercent ?? 5)) / 100;
+const dt = p => p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString("en-IN") : "";
+let V;
 
-let me = null, myDoc = null, cats = [], ads = [], favs = new Set(), pos = null, unsub = null;
-let pendingName = "", pendingPhone = "", imgs = [], chatMeta = {};
-let settings = { upiId: "", upiName: "Vendor", razorpayKey: "", commission: 5, cloudinaryCloud: "", cloudinaryPreset: "", premiumMonth: 50, premiumYear: 600 };
-let delSet = new Set();
-const isPremium = () => (myDoc?.premiumUntil?.toMillis?.() || 0) > Date.now();
-let F = { q: "", cat: "", sort: "new" };
-
-const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); };
-
-const km = (a, b) => {
-  const R = 6371, r = x => x * Math.PI / 180, dl = r(b.lat - a.lat), dg = r(b.lng - a.lng);
-  const h = Math.sin(dl / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dg / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-};
-const getLoc = () => new Promise(res => {
-  if (pos) return res(pos);
-  if (!navigator.geolocation) return res(null);
-  navigator.geolocation.getCurrentPosition(
-    p => { pos = { lat: p.coords.latitude, lng: p.coords.longitude }; res(pos); },
-    () => { toast("Location allow karo"); res(null); }
-  );
-});
-
-const resize = (src, max, q) => new Promise(res => {
-  const i = new Image();
-  i.onload = () => {
-    const s = Math.min(1, max / Math.max(i.width, i.height));
-    const c = document.createElement("canvas");
-    c.width = i.width * s; c.height = i.height * s;
-    c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
-    res(c.toDataURL("image/jpeg", q));
-  };
-  i.src = src;
-});
-const compress = (file, max = 700) => new Promise(res => {
-  const r = new FileReader();
-  r.onload = () => resize(r.result, max, 0.6).then(res);
-  r.readAsDataURL(file);
-});
-const thumb = src => resize(src, 110, 0.6);
-
-const checkVideo = file => new Promise((ok, no) => {
-  if (!isPremium()) return no(new Error("Video sirf Premium walon ke liye hai"));
-  if (!settings.cloudinaryCloud || !settings.cloudinaryPreset) return no(new Error("Video upload abhi on nahi hai (admin ne set nahi kiya)"));
-  if (file.size > 100 * 1024 * 1024) return no(new Error("Video 100 MB se chhota chuno"));
-  const v = document.createElement("video");
-  v.preload = "metadata";
-  v.onloadedmetadata = () => { URL.revokeObjectURL(v.src); v.duration > 240 ? no(new Error("Video 4 minute se zyada hai")) : ok(v.duration); };
-  v.onerror = () => no(new Error("Ye video file padh nahi pa rahe"));
-  v.src = URL.createObjectURL(file);
-});
-const uploadVideo = (file, onP) => new Promise((ok, no) => {
-  const fd = new FormData();
-  fd.append("file", file); fd.append("upload_preset", settings.cloudinaryPreset);
-  const x = new XMLHttpRequest();
-  x.open("POST", `https://api.cloudinary.com/v1_1/${encodeURIComponent(settings.cloudinaryCloud)}/video/upload`);
-  x.upload.onprogress = e => { if (e.lengthComputable && onP) onP(Math.round(e.loaded / e.total * 100)); };
-  x.onload = () => {
-    try { const r = JSON.parse(x.responseText); r.secure_url ? ok(r.secure_url) : no(new Error(r.error?.message || "Video upload fail")); }
-    catch (e) { no(new Error("Video upload fail")); }
-  };
-  x.onerror = () => no(new Error("Internet ya upload error"));
-  x.send(fd);
-});
-
-/* ---------- navigation ---------- */
-const views = { home: viewHome, sell: viewSell, chats: viewChats, profile: viewProfile, detail: viewDetail, chat: viewChat };
-function go(v, arg) {
-  if (unsub) { unsub(); unsub = null; }
-  $("#nav").hidden = false;
-  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
-  views[v](arg);
-  window.scrollTo(0, 0);
-}
-$("#nav").onclick = e => { const v = e.target.closest("button")?.dataset.v; if (v) go(v); };
-A.addEventListener("click", e => {
-  const f = e.target.closest("[data-fav]");
-  if (f) { e.stopPropagation(); toggleFav(f.dataset.fav, f); return; }
-  const ch = e.target.closest("[data-chat]");
-  if (ch) { go("chat", chatMeta[ch.dataset.chat]); return; }
-  const c = e.target.closest("[data-ad]");
-  if (c) go("detail", c.dataset.ad);
-});
-
-/* ---------- auth ---------- */
-function viewAuth() {
-  $("#nav").hidden = true;
-  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:120px;display:block;margin:0 auto"><h1 style="text-align:center">Vendor</h1><p class="mut" style="text-align:center">Connect | Sell | Grow</p>
-  <input id="n" placeholder="Naam (sirf signup ke liye)">
-  <input id="ph" type="tel" inputmode="numeric" maxlength="10" placeholder="Mobile number, 10 ank (sirf signup ke liye)">
-  <input id="e" type="email" placeholder="Email">
-  <input id="p" type="password" placeholder="Password (min 6 akshar)">
-  <button class="btn" id="su">Signup</button>
-  <button class="btn alt" id="li">Login</button>
-  <button class="lnk" id="fp">Password bhool gaye?</button>${isSignInWithEmailLink(auth, location.href) ? '<p class="mut" style="color:#c0392b;text-align:center">Account delete confirm karne ke liye pehle login karo.</p>' : ""}</div>`;
-  $("#su").onclick = async () => {
-    const ph = $("#ph").value.trim();
-    if (!$("#n").value.trim()) return toast("Naam likho");
-    if (!/^[6-9]\d{9}$/.test(ph)) return toast("Sahi 10 ank ka mobile number likho");
-    try {
-      pendingName = $("#n").value.trim(); pendingPhone = ph;
-      try { localStorage.setItem("vendor_pending", JSON.stringify({ name: pendingName, phone: ph, email: $("#e").value.trim().toLowerCase() })); } catch (x) {}
-      const c = await createUserWithEmailAndPassword(auth, $("#e").value.trim(), $("#p").value);
-      await updateProfile(c.user, { displayName: pendingName }).catch(() => {});
-      await sendEmailVerification(c.user).catch(e => toast("Verification mail nahi gayi: " + (e.code || e.message)));
-    } catch (e) { toast(e.code === "auth/email-already-in-use" ? "Ye email pehle se registered hai. Login karo." : e.message); }
-  };
+function loginView(msg = "") {
+  R.innerHTML = `<h2>Vendor Admin Login</h2><p style="color:red">${esc(msg)}</p>
+  <input id="e" type="email" placeholder="Admin email"><input id="p" type="password" placeholder="Password">
+  <button id="li">Login</button>`;
   $("#li").onclick = async () => {
     try { await signInWithEmailAndPassword(auth, $("#e").value, $("#p").value); }
-    catch (e) { toast("Email ya password galat hai"); }
+    catch (e) { loginView("Email ya password galat hai"); }
   };
-  $("#fp").onclick = async () => {
-    const e = $("#e").value; if (!e) return toast("Pehle email likho");
-    try { await sendPasswordResetEmail(auth, e); toast("Reset link email par bhej diya"); } catch (x) { toast(x.message); }
-  };
-}
-
-const pending = email => {
-  try { const p = JSON.parse(localStorage.getItem("vendor_pending") || "{}"); return p.email === (email || "").toLowerCase() ? p : {}; }
-  catch (e) { return {}; }
-};
-function viewVerify(u) {
-  $("#nav").hidden = true;
-  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:90px;display:block;margin:0 auto">
-  <h2 style="text-align:center">Email verify karo</h2>
-  <p class="mut" style="text-align:center">Humne <b>${esc(u.email)}</b> par verification link bheja hai. Email kholo (Spam / Promotions bhi dekho), link par tap karo, phir yahan wapas aao.</p>
-  <button class="btn" id="vd">Maine verify kar liya</button>
-  <button class="btn alt" id="vr">Link dobara bhejo</button>
-  <button class="lnk" id="vl" style="width:100%">Galat email? Logout karke dobara signup karo</button></div>`;
-  $("#vd").onclick = async () => {
-    try { await u.reload(); } catch (e) {}
-    if (auth.currentUser?.emailVerified) location.reload(); else toast("Abhi verify nahi hua. Email ka link kholo.");
-  };
-  $("#vr").onclick = async () => {
-    try { await sendEmailVerification(auth.currentUser); toast("Link dobara bhej diya"); }
-    catch (e) { toast("Mail nahi gayi: " + (e.code || e.message)); }
-  };
-  $("#vl").onclick = () => signOut(auth);
 }
 
 onAuthStateChanged(auth, async u => {
-  if (!u) { me = null; viewAuth(); return; }
-  const r = doc(db, "users", u.uid);
-  let s = null;
-  try { s = await getDoc(r); } catch (e) {}
-  if (!u.emailVerified && !(s && s.exists())) { viewVerify(u); return; }
-  if (!s || !s.exists()) {
-    const p = pending(u.email);
-    await setDoc(r, { name: p.name || u.displayName || u.email.split("@")[0], email: u.email, phone: p.phone || "", city: "", upi: "", role: "user", isBlocked: false, createdAt: serverTimestamp() });
-    s = await getDoc(r);
-    try { localStorage.removeItem("vendor_pending"); } catch (e) {}
-  }
-  myDoc = s.data();
-  if (myDoc.deleted) { me = u; await viewDeleted(u, myDoc); return; }
-  if (myDoc.isBlocked) { await signOut(auth); alert("Aapka account block hai. Admin se baat karo."); return; }
-  me = u;
-  try { const c = await getDocs(collection(db, "categories")); cats = c.docs.map(d => d.data().name); } catch (e) {}
-  if (!cats.length) cats = DEF_CATS;
-  try { const st = await getDoc(doc(db, "settings", "app")); if (st.exists()) Object.assign(settings, st.data()); } catch (e) {}
-  const f = await getDocs(collection(db, "users", u.uid, "favs"));
-  favs = new Set(f.docs.map(d => d.id));
-  try { await setDoc(doc(db, "daily_activity", today() + "_" + u.uid), { uid: u.uid, date: today() }); } catch (e) {}
-  if (isSignInWithEmailLink(auth, location.href)) { handleDeleteLink(); return; }
-  go("home");
-  checkDeliveries();
+  if (!u) return loginView();
+  const s = await getDoc(doc(db, "users", u.uid));
+  if (!s.exists() || s.data().role !== "admin") { await signOut(auth); return loginView("Ye account admin nahi hai"); }
+  R.innerHTML = `<h2>Vendor Admin <small>v3</small></h2><div class="nav" id="nv">
+  <button data-t="dash">📊 Dashboard</button><button data-t="ads">📝 Ads</button>
+  <button data-t="users">👥 Users</button><button data-t="cats">🗂 Categories</button>
+  <button data-t="pay">💳 Payments</button><button data-t="earn">💰 Meri Kamai</button>
+  <button data-t="chats">💬 Chats</button><button data-t="prem">⭐ Premium</button><button data-t="rec">♻️ Recover</button><button data-t="set">⚙️ Settings</button>
+  <button class="g" id="lo">Logout</button></div><div id="v"></div>`;
+  V = $("#v");
+  $("#lo").onclick = () => signOut(auth);
+  const tabs = { dash, ads: () => adsTab("pending"), users: usersTab, cats: catsTab, pay: () => payTab("pending"), earn: earnTab, chats: chatsTab, prem: premTab, rec: recTab, set: setTab };
+  $("#nv").onclick = async e => {
+    const t = e.target.dataset.t; if (!t) return;
+    document.querySelectorAll("#nv button").forEach(b => b.classList.toggle("on", b === e.target));
+    V.onclick = null; V.innerHTML = "Loading...";
+    try { await tabs[t](); }
+    catch (x) { V.innerHTML = `<p style="color:red"><b>Error (${esc(t)}):</b> ${esc(x.message)}</p>
+      <p><small>Ye admin page is Firebase project se juda hai: <b>${esc(firebaseConfig.projectId)}</b><br>Login: <b>${esc(auth.currentUser?.email)}</b></small></p>
+      <p><small>Firebase console mein bilkul yahi project (<b>${esc(firebaseConfig.projectId)}</b>) kholkar Firestore Database → Rules mein firestore.rules paste karo aur Publish dabao.</small></p>`; }
+  };
+  $("#nv button").click();
 });
 
-/* ---------- home ---------- */
-const card = a => `<div class="card" data-ad="${a.id}"><img src="${a.images?.[0] || ""}" alt="">
-  <button class="h" data-fav="${a.id}">${favs.has(a.id) ? "❤️" : "🤍"}</button>
-  <div class="b"><b>₹${a.price}</b><div>${esc(a.title)}</div>
-  <div class="mut">📍 ${esc(a.city)}${a.dist != null ? " • " + a.dist.toFixed(1) + " km" : ""}</div></div></div>`;
-
-async function viewHome() {
-  A.innerHTML = `<div class="top"><input id="q" placeholder="🔍 Search karo..." value="${esc(F.q)}">
-  <select id="so"><option value="new">Naya pehle</option><option value="near">Paas wale pehle</option><option value="lo">Price: kam se zyada</option><option value="hi">Price: zyada se kam</option></select>
-  <div class="chips" id="ch"></div></div><div id="list" class="grid"><p class="mut">Loading...</p></div>`;
-  const ch = $("#ch");
-  ch.innerHTML = ["", ...cats].map(c => `<span data-c="${esc(c)}" class="${F.cat === c ? "on" : ""}">${esc(c) || "Sab"}</span>`).join("");
-  ch.onclick = e => {
-    if (e.target.dataset.c === undefined) return;
-    F.cat = e.target.dataset.c;
-    [...ch.children].forEach(x => x.classList.toggle("on", x === e.target));
-    renderList();
-  };
-  $("#q").oninput = e => { F.q = e.target.value; renderList(); };
-  $("#so").value = F.sort;
-  $("#so").onchange = async e => { F.sort = e.target.value; if (F.sort === "near") await getLoc(); renderList(); };
-  try { const dsn = await getDocs(query(collection(db, "users"), where("deleted", "==", true))); delSet = new Set(dsn.docs.map(d => d.id)); } catch (e) {}
-  const s = await getDocs(query(collection(db, "ads"), where("status", "==", "approved"), limit(200)));
-  ads = s.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderList();
-}
-function renderList() {
-  const box = $("#list"); if (!box) return;
-  const q = F.q.toLowerCase();
-  const L = ads.filter(a => !delSet.has(a.userId) && (!F.cat || a.category === F.cat) && (!q || (a.title + " " + a.description).toLowerCase().includes(q)));
-  L.forEach(a => a.dist = pos && a.lat != null ? km(pos, a) : null);
-  L.sort(F.sort === "near" ? (x, y) => (x.dist ?? 1e9) - (y.dist ?? 1e9)
-    : F.sort === "lo" ? (x, y) => x.price - y.price
-    : F.sort === "hi" ? (x, y) => y.price - x.price
-    : (x, y) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0));
-  box.innerHTML = L.length ? L.map(card).join("") : `<p class="mut">Koi ad nahi mili</p>`;
-}
-async function toggleFav(id, el) {
-  const r = doc(db, "users", me.uid, "favs", id);
-  if (favs.has(id)) { favs.delete(id); await deleteDoc(r); } else { favs.add(id); await setDoc(r, { at: serverTimestamp() }); }
-  const on = favs.has(id);
-  el.textContent = el.classList.contains("btn") ? (on ? "❤️ Saved" : "🤍 Save") : (on ? "❤️" : "🤍");
-}
-
-/* ---------- ad detail + buy ---------- */
-async function viewDetail(id) {
-  let s; try { s = await getDoc(doc(db, "ads", id)); } catch (e) { return toast("Ad nahi mili"); }
-  if (!s.exists()) return toast("Ad nahi mili");
-  const a = { id, ...s.data() }, own = a.userId === me.uid;
-  let gone = false;
-  if (!own) { try { const sd = await getDoc(doc(db, "users", a.userId)); gone = !!(sd.exists() && sd.data().deleted); } catch (e) {} }
-  A.innerHTML = `<div class="pad"><button class="lnk" id="bk">← Wapas</button>
-  <div class="car">${(a.images || []).map(i => `<img src="${i}" alt="">`).join("")}</div>
-  ${a.videoUrl ? `<video controls playsinline preload="metadata" poster="${esc(a.videoUrl.replace(/\.[a-z0-9]+$/i, ".jpg"))}" src="${esc(a.videoUrl)}" style="margin-top:8px"></video>` : ""}
-  <h2>₹${a.price}</h2><h3>${esc(a.title)}</h3>
-  <p class="mut">📍 ${esc(a.city)} • ${esc(a.condition)} • ${esc(a.category)}</p>
-  <p>${esc(a.description)}</p><p class="mut">Seller: ${esc(a.sellerName)}</p>
-  ${gone ? "<b>Is seller ka account available nahi hai</b>" : a.status === "sold" ? "<b>SOLD ✔</b>" : own ? "" : `<button class="btn" id="by">🛒 Buy karo (₹${a.price})</button><button class="btn alt" id="cb">💬 Seller se chat karo</button>`}
-  <button class="btn alt" data-fav="${id}">${favs.has(id) ? "❤️ Saved" : "🤍 Save"}</button></div>`;
-  $("#bk").onclick = () => go("home");
-  if ($("#cb")) $("#cb").onclick = () => startChat(a);
-  if ($("#by")) $("#by").onclick = () => paySheet(a);
-}
-
-const STATES = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"];
-
-function paySheet(a) {
-  const ov = document.createElement("div");
-  ov.className = "ov";
+/* ---------- helpers: modal, date, chat ---------- */
+const ymd = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const fmtD = x => x ? x.split("-").reverse().join("/") : "-";
+function modal(html) {
+  const ov = document.createElement("div"); ov.className = "ov"; ov.innerHTML = `<div class="sheet">${html}</div>`;
   document.body.appendChild(ov);
-  const close = () => ov.remove();
-  ov.onclick = e => { if (e.target === ov) close(); };
-  let sv = {}; try { sv = JSON.parse(localStorage.getItem("vendor_addr") || "{}"); } catch (e) {}
-  let gps = null;
-
-  const showForm = () => {
-    ov.innerHTML = `<div class="sheet"><h3>Delivery details</h3>
-    <p><b>${esc(a.title)}</b> • ₹${a.price}</p>
-    <p class="mut">Ye details pehle admin ko milengi. Payment approve hone ke baad seller ko bhi jayengi.</p>
-    <input id="dn" placeholder="Aapka naam" value="${esc(sv.name || myDoc.name || "")}">
-    <input id="dp" type="tel" inputmode="numeric" maxlength="10" placeholder="Contact number (10 ank)" value="${esc(sv.phone || myDoc.phone || "")}">
-    <b class="mut">Aapki location</b>
-    <select id="ds"><option value="">State chuno</option>${STATES.map(x => `<option ${sv.state === x ? "selected" : ""}>${x}</option>`).join("")}</select>
-    <input id="dd" placeholder="District" value="${esc(sv.district || "")}">
-    <input id="dc" placeholder="City / Gaon" value="${esc(sv.city || "")}">
-    <input id="dz" type="tel" inputmode="numeric" maxlength="6" placeholder="Pin code (6 ank)" value="${esc(sv.pin || "")}">
-    <b class="mut">Delivery location</b>
-    <textarea id="da" placeholder="Delivery ka poora pata (ghar / gali / mohalla)">${esc(sv.address || "")}</textarea>
-    <input id="dl" placeholder="Landmark (jaise: school ke paas)" value="${esc(sv.landmark || "")}">
-    <button class="btn alt" id="dg" type="button">📍 GPS location bhi jodo (optional)</button>
-    <p class="mut" id="dgi"></p>
-    <button class="btn" id="dgo">Aage badho: Payment</button>
-    <button class="lnk" id="px">Cancel</button></div>`;
-    const g = s => ov.querySelector(s);
-    g("#px").onclick = close;
-    g("#dg").onclick = async () => { const l = await getLoc(); if (l) { gps = l; g("#dgi").textContent = "✅ GPS location mil gayi"; } };
-    g("#dgo").onclick = () => {
-      const d = { name: g("#dn").value.trim(), phone: g("#dp").value.trim(), state: g("#ds").value, district: g("#dd").value.trim(), city: g("#dc").value.trim(), pin: g("#dz").value.trim(), address: g("#da").value.trim(), landmark: g("#dl").value.trim() };
-      if (!d.name) return toast("Naam likho");
-      if (!/^[6-9]\d{9}$/.test(d.phone)) return toast("Sahi 10 ank ka contact number likho");
-      if (!d.state || !d.district || !d.city) return toast("State, district aur city likho");
-      if (!/^\d{6}$/.test(d.pin)) return toast("Sahi 6 ank ka pin code likho");
-      if (!d.address) return toast("Delivery ka pata likho");
-      if (!d.landmark) return toast("Landmark likho");
-      try { localStorage.setItem("vendor_addr", JSON.stringify(d)); } catch (e) {}
-      sv = d;
-      showPay({ ...d, gps: gps || (pos ? { lat: pos.lat, lng: pos.lng } : null) });
-    };
-  };
-
-  const showPay = det => {
-    ov.innerHTML = `<div class="sheet"><h3>Payment</h3>
-    <p><b>${esc(a.title)}</b><br>Total: <b>₹${a.price}</b></p>
-    <button class="btn" id="pm1">💳 Online Payment (UPI / Card / NetBanking)</button>
-    <button class="btn alt" id="pm2">📱 UPI se seedha pay karo</button>
-    <div id="pb2"></div>
-    <p class="mut">Paisa pehle Vendor ke paas safe rehta hai. Admin payment verify karke seller ko bhejta hai.</p>
-    <button class="lnk" id="pbk">← Details badlo</button> <button class="lnk" id="px">Cancel</button></div>`;
-    ov.querySelector("#px").onclick = close;
-    ov.querySelector("#pbk").onclick = showForm;
-
-    ov.querySelector("#pm1").onclick = async () => {
-      if (!settings.razorpayKey) return toast("Online payment abhi on nahi hai. UPI se pay karo.");
-      if (!window.Razorpay) {
-        await new Promise((ok, no) => {
-          const sc = document.createElement("script");
-          sc.src = "https://checkout.razorpay.com/v1/checkout.js"; sc.onload = ok; sc.onerror = no;
-          document.head.appendChild(sc);
-        }).catch(() => toast("Payment page load nahi hua"));
-      }
-      if (!window.Razorpay) return;
-      new window.Razorpay({
-        key: settings.razorpayKey, amount: Math.round(a.price * 100), currency: "INR",
-        name: "Vendor", description: a.title,
-        prefill: { name: det.name, email: myDoc.email, contact: det.phone },
-        theme: { color: "#3b3fd8" },
-        handler: r => { close(); createPayment(a, "razorpay", r.razorpay_payment_id, det); }
-      }).open();
-    };
-
-    ov.querySelector("#pm2").onclick = () => {
-      if (!settings.upiId) return toast("UPI abhi set nahi hai");
-      const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${a.price}&cu=INR&tn=${encodeURIComponent("Vendor " + a.title.slice(0, 30))}`;
-      const b = ov.querySelector("#pb2");
-      b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${a.price}</b></p>
-      <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
-      <input id="utr" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
-      <button class="btn" id="pd">Maine pay kar diya</button>`;
-      b.querySelector("#pd").onclick = () => {
-        const u = b.querySelector("#utr").value.trim();
-        if (u.length < 6) return toast("Sahi Transaction ID likho");
-        close(); createPayment(a, "upi", u, det);
-      };
-    };
-  };
-  showForm();
+  return ov;
 }
-
-async function createPayment(a, method, ref, det) {
-  try {
-    const pref = doc(collection(db, "payments"));
-    const batch = writeBatch(db);
-    batch.set(pref, {
-      adId: a.id, adTitle: a.title, buyerId: me.uid, buyerName: myDoc.name,
-      sellerId: a.userId, sellerName: a.sellerName, amount: a.price,
-      commissionPercent: settings.commission, method, ref, status: "pending", deliveryStatus: "pending", createdAt: serverTimestamp()
-    });
-    batch.set(doc(pref, "private", "details"), { ...det, buyerId: me.uid, createdAt: serverTimestamp() });
-    await batch.commit();
-    toast("Payment note ho gayi. Admin verify karega ✅");
-    go("profile", "orders");
-  } catch (e) { toast("Payment save nahi hui: " + e.message); }
-}
-
-/* ---------- sell ---------- */
-async function viewSell() {
-  try { const f = await getDoc(doc(db, "users", me.uid)); if (f.exists()) myDoc = f.data(); } catch (e) {}
-  imgs = [];
-  let vfile = null;
-  A.innerHTML = `<div class="pad"><h2>Ad post karo</h2>
-  <input type="file" id="im" accept="image/*" multiple><p class="mut">Max 4 photos</p><div id="pv" class="pv"></div>
-  ${isPremium() ? `<label class="mut">🎬 Video (max 4 minute) - Premium</label><input type="file" id="vd" accept="video/*"><p class="mut" id="vi"></p>` : `<p class="mut">🎬 Video upload sirf Premium ke liye (₹${settings.premiumMonth}/month ya ₹${settings.premiumYear}/year). <button class="lnk" id="gp" type="button">Premium lo</button></p>`}
-  <input id="t" placeholder="Title (jaise: iPhone 11, 64GB)">
-  <textarea id="d" placeholder="Description"></textarea>
-  <select id="c">${cats.map(c => `<option>${esc(c)}</option>`).join("")}</select>
-  <select id="cd"><option>Used</option><option>Like New</option><option>New</option></select>
-  <input id="pr" type="number" placeholder="Price (₹)">
-  <input id="ci" placeholder="City / Area" value="${esc(myDoc.city || "")}">
-  ${myDoc.upi ? "" : `<input id="up" placeholder="Aapka UPI ID (bikne par paisa yahan milega)"><p class="mut">UPI ID zaroori hai, warna hum aapko paisa nahi bhej payenge.</p>`}
-  <button class="btn alt" id="lo">📍 Meri location use karo</button>
-  <button class="btn" id="go">Ad post karo</button></div>`;
-  $("#im").onchange = async e => {
-    imgs = [];
-    for (const f of [...e.target.files].slice(0, 4)) imgs.push(await compress(f));
-    $("#pv").innerHTML = imgs.map(i => `<img src="${i}" alt="">`).join("");
-  };
-  $("#lo").onclick = async () => { if (await getLoc()) toast("Location mil gayi ✅"); };
-  if ($("#vd")) $("#vd").onchange = async e => {
-    vfile = null; const f = e.target.files[0]; if (!f) return;
-    try { await checkVideo(f); vfile = f; $("#vi").textContent = "✅ " + f.name; }
-    catch (x) { toast(x.message); e.target.value = ""; $("#vi").textContent = ""; }
-  };
-  if ($("#gp")) $("#gp").onclick = () => go("profile", "premium");
-  $("#go").onclick = async () => {
-    const t = $("#t").value.trim(), p = Number($("#pr").value), ci = $("#ci").value.trim();
-    if (!imgs.length || !t || !p || !ci) return toast("Photo, title, price aur city zaroori hai");
-    let up = myDoc.upi || "";
-    if (!up) {
-      up = $("#up")?.value.trim() || "";
-      if (!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(up)) return toast("Sahi UPI ID likho (jaise naam@upi)");
-    }
-    $("#go").disabled = true;
-    try {
-      if (!myDoc.upi) { await updateDoc(doc(db, "users", me.uid), { upi: up }); myDoc.upi = up; }
-      let videoUrl = "";
-      if (vfile) { let last = -10; videoUrl = await uploadVideo(vfile, pc => { if (pc - last >= 5) { last = pc; $("#go").textContent = "Video upload " + pc + "%..."; } }); }
-      await addDoc(collection(db, "ads"), {
-        userId: me.uid, sellerName: myDoc.name, title: t, description: $("#d").value.trim(),
-        category: $("#c").value, condition: $("#cd").value, price: p, city: ci,
-        lat: pos?.lat ?? null, lng: pos?.lng ?? null, images: imgs, status: "pending", createdAt: serverTimestamp(), ...(videoUrl ? { videoUrl } : {})
-      });
-      toast("Ad bhej di! Admin approve karega"); go("profile");
-    } catch (e) { toast(e.message); $("#go").disabled = false; $("#go").textContent = "Ad post karo"; }
-  };
-}
-
-/* ---------- chat ---------- */
-const pairId = (x, y) => [x, y].sort().join("_");
-const otherName = c => c.names
-  ? (c.names[(c.participants || []).find(x => x !== me.uid)] || "User")
-  : (c.buyerId === me.uid ? c.sellerName : c.buyerName);
-async function sendMsg(cid, m, preview, extra = {}) {
-  await setDoc(doc(db, "chats", cid), { lastMessage: preview, updatedAt: serverTimestamp(), ...extra }, { merge: true });
-  await addDoc(collection(db, "chats", cid, "messages"), { from: me.uid, createdAt: serverTimestamp(), ...m });
-}
-async function startChat(a) {
-  const id = pairId(me.uid, a.userId);
-  const data = { participants: [me.uid, a.userId].sort(), names: { [me.uid]: myDoc.name, [a.userId]: a.sellerName }, adTitle: a.title };
-  try {
-    await setDoc(doc(db, "chats", id), data, { merge: true });
-    const cs = await getDoc(doc(db, "chats", id));
-    const full = { id, ...cs.data() };
-    if (cs.data().lastAdId !== a.id) {
-      await sendMsg(id, { type: "ad", adId: a.id, adTitle: a.title, adPrice: a.price, adImg: await thumb(a.images[0]) }, "📎 Ad: " + a.title, { lastAdId: a.id, adTitle: a.title });
-      full.lastAdId = a.id; full.adTitle = a.title;
-    }
-    go("chat", full);
-  } catch (e) { toast(e.message); }
-}
-function viewChats() {
-  A.innerHTML = `<div class="pad"><h2>Chats</h2><div id="cl"><p class="mut">Loading...</p></div></div>`;
-  unsub = onSnapshot(query(collection(db, "chats"), where("participants", "array-contains", me.uid)), s => {
-    const L = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.lastMessage)
-      .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-    chatMeta = {}; L.forEach(c => chatMeta[c.id] = c);
-    $("#cl").innerHTML = L.length ? L.map(c => `<div class="row2" data-chat="${c.id}"><b>${esc(otherName(c))}</b>
-      <div class="mut">${esc(c.adTitle)}</div><div>${esc(c.lastMessage)}</div></div>`).join("")
-      : `<p class="mut">Abhi koi chat nahi. Kisi ad par "Seller se chat karo" dabao.</p>`;
+function askDate(title, def) {
+  return new Promise(res => {
+    const ov = modal(`<h3>${esc(title)}</h3><input type="date" id="dtv" min="${ymd(new Date())}" value="${esc(def || "")}"><button id="dok">Save</button><button class="g" id="dno">Cancel</button>`);
+    ov.querySelector("#dno").onclick = () => { ov.remove(); res(null); };
+    ov.querySelector("#dok").onclick = () => { const v = ov.querySelector("#dtv").value; if (!v) return alert("Date chuno"); ov.remove(); res(v); };
   });
 }
-const msgHtml = m => {
-  const mine = m.from === me.uid ? "me" : "";
-  if (m.type === "ad") return `<div class="m adm ${mine}" data-ad="${m.adId}"><img src="${m.adImg || ""}" alt=""><div><b>₹${m.adPrice}</b><div>${esc(m.adTitle)}</div><small>Ad dekhne ke liye tap karo</small></div></div>`;
-  if (m.type === "video") return `<div class="m ${mine}"><video controls playsinline preload="metadata" src="${esc(m.url)}"></video></div>`;
-  if (m.type === "img") return `<div class="m ${mine}"><img class="pic" src="${m.img}" alt=""></div>`;
-  return `<div class="m ${mine}">${esc(m.text)}</div>`;
-};
-function viewChat(c) {
-  const other = otherName(c);
-  A.innerHTML = `<div class="chat"><div class="ch-h"><button class="lnk" id="bk">←</button>
-  <div><b>${esc(other)}</b><div class="mut">${esc(c.adTitle)}</div></div></div>
-  <div id="ms" class="ms"></div>
-  <div class="ch-f"><label class="cam">📷<input type="file" id="cf" accept="${isPremium() ? "image/*,video/*" : "image/*"}" hidden></label>
-  <input id="mi" placeholder="Message likho..."><button class="btn" id="sd">Send</button></div></div>`;
-  $("#bk").onclick = () => go("chats");
-  getDoc(doc(db, "users", me.uid)).then(f => { if (f.exists()) { myDoc = f.data(); const i = $("#cf"); if (i) i.accept = isPremium() ? "image/*,video/*" : "image/*"; } }).catch(() => {});
-  unsub = onSnapshot(query(collection(db, "chats", c.id, "messages"), orderBy("createdAt")), s => {
-    $("#ms").innerHTML = s.docs.map(d => msgHtml(d.data())).join("");
-    $("#ms").scrollTop = 1e9;
-  }, () => {});
-  const send = async () => {
-    const t = $("#mi").value.trim(); if (!t) return; $("#mi").value = "";
-    try { await sendMsg(c.id, { type: "text", text: t }, t); } catch (e) { toast(e.message); }
-  };
-  $("#sd").onclick = send;
-  $("#mi").onkeydown = e => { if (e.key === "Enter") send(); };
-  $("#cf").onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    try {
-      if (f.type.startsWith("video/")) {
-        await checkVideo(f);
-        let last = -10; toast("Video upload ho rahi hai...");
-        const url = await uploadVideo(f, pc => { if (pc - last >= 10) { last = pc; toast("Video upload " + pc + "%"); } });
-        await sendMsg(c.id, { type: "video", url }, "🎬 Video");
-      } else { toast("Photo bhej raha hoon..."); await sendMsg(c.id, { type: "img", img: await compress(f, 600) }, "📷 Photo"); }
-    } catch (x) { toast(x.message); }
-    e.target.value = "";
-  };
-}
-
-/* ---------- profile ---------- */
-function viewProfile(tab = "ads") {
-  A.innerHTML = `<div class="pad"><h2>👤 ${esc(myDoc.name)}</h2><p class="mut">${esc(myDoc.email)}</p>
-  <div class="tabs"><button data-t="ads">Meri Ads</button><button data-t="orders">Orders</button><button data-t="fav">Favorites</button><button data-t="premium">⭐ Premium</button><button data-t="edit">Edit</button></div>
-  <div id="pb"></div><button class="btn alt" id="lg">Logout</button></div>`;
-  const tabs = A.querySelectorAll(".tabs button");
-  tabs.forEach(b => b.onclick = () => { tabs.forEach(x => x.classList.toggle("on", x === b)); pTab(b.dataset.t); });
-  [...tabs].find(b => b.dataset.t === tab).click();
-  $("#lg").onclick = () => signOut(auth);
-}
-async function pTab(t) {
-  const box = $("#pb"); box.onclick = null; box.innerHTML = "Loading...";
-  if (t === "ads") {
-    const s = await getDocs(query(collection(db, "ads"), where("userId", "==", me.uid)));
-    box.innerHTML = s.empty ? `<p class="mut">Aapne abhi koi ad post nahi ki</p>` : s.docs.map(d => {
-      const a = d.data();
-      return `<div class="row2"><b>${esc(a.title)}</b> • ₹${a.price}<br><span class="badge">${a.status}</span>
-      ${a.rejectReason ? `<p class="mut">Reason: ${esc(a.rejectReason)}</p>` : ""}<br>
-      ${a.status === "approved" ? `<button class="lnk" data-sold="${d.id}">Sold mark karo</button> ` : ""}
-      <button class="lnk" data-del="${d.id}">Delete</button></div>`;
+async function openChatWith(uid, uname) {
+  const aid = auth.currentUser.uid, cid = [aid, uid].sort().join("_");
+  const myName = (await getDoc(doc(db, "users", aid))).data()?.name || "Admin";
+  try { await setDoc(doc(db, "chats", cid), { participants: [aid, uid].sort(), names: { [aid]: myName, [uid]: uname } }, { merge: true }); }
+  catch (x) { return alert("Chat nahi khuli: " + x.message); }
+  const ov = modal(`<div style="display:flex;justify-content:space-between;align-items:center"><b>💬 ${esc(uname)}</b><button class="g" id="cx">Band karo</button></div>
+  <div id="cm" style="height:45vh;overflow-y:auto;background:#f2f4f7;border-radius:8px;padding:8px;margin:8px 0"></div>
+  <div style="display:flex;gap:6px"><input id="ci" placeholder="Message likho..."><button id="cs">Send</button></div>`);
+  const stop = onSnapshot(query(collection(db, "chats", cid, "messages"), orderBy("createdAt")), s => {
+    const box = ov.querySelector("#cm");
+    box.innerHTML = s.docs.map(d => {
+      const m = d.data(), mine = m.from === aid;
+      const body = m.type === "ad" ? "📎 Ad: " + esc(m.adTitle) : m.type === "img" ? `<img src="${m.img}" style="max-width:180px;border-radius:6px" alt="">` : m.type === "video" ? `<video controls src="${esc(m.url)}"></video>` : esc(m.text);
+      return `<div style="text-align:${mine ? "right" : "left"}"><span class="msg" style="${mine ? "background:#3b3fd8;color:#fff" : ""}">${body}</span></div>`;
     }).join("");
-    box.onclick = async e => {
-      const sold = e.target.dataset.sold, del = e.target.dataset.del;
-      if (sold) { await updateDoc(doc(db, "ads", sold), { status: "sold" }); pTab("ads"); }
-      if (del && confirm("Ad delete karein?")) { await deleteDoc(doc(db, "ads", del)); pTab("ads"); }
-    };
-  } else if (t === "orders") {
-    const [b, s] = await Promise.all([
-      getDocs(query(collection(db, "payments"), where("buyerId", "==", me.uid))),
-      getDocs(query(collection(db, "payments"), where("sellerId", "==", me.uid)))
-    ]);
-    const dets = {}, OM = {};
-    await Promise.all(s.docs.filter(d => ["verified", "settled"].includes(d.data().status)).map(async d => {
-      try { const x = await getDoc(doc(db, "payments", d.id, "private", "details")); if (x.exists()) dets[d.id] = x.data(); } catch (e) {}
-    }));
-    const dlv = (p, id, buyer) => {
-      if (!["verified", "settled"].includes(p.status)) return "";
-      if (p.deliveryStatus === "received") return `<div class="mut">✅ Product mil gaya (buyer ne confirm kiya)</div>`;
-      if (p.deliveryStatus === "not_received") return `<div class="mut">⚠️ Buyer ko product nahi mila. Admin nayi tarikh batayega.</div>`;
-      return `<div class="mut">📅 Product milne ki tarikh: <b>${fmtD(p.deliveryDate)}</b></div>` +
-        (buyer && p.deliveryDate && p.deliveryDate <= localDate() ? `<button class="btn" data-recv="${id}">📦 Product mila? Jawab do</button>` : "");
-    };
-    const row = (d, buyer) => {
-      const p = d.data(), get = Math.round(p.amount * (100 - p.commissionPercent)) / 100, x = dets[d.id];
-      OM[d.id] = p;
-      return `<div class="row2"><b>${esc(p.adTitle)}</b> • ₹${p.amount}<br>
-      <span class="badge">${ST[p.status] || p.status}</span>
-      <div class="mut">${buyer ? "Maine kharida (seller: " + esc(p.sellerName) + ")" : "Maine becha (buyer: " + esc(p.buyerName) + ") • Aapko milega: ₹" + get}</div>
-      ${dlv(p, d.id, buyer)}
-      ${!buyer ? (x ? `<div class="mut" style="margin-top:6px"><b>📦 Buyer ki details</b><br>👤 ${esc(x.name)} • 📱 <a href="tel:${esc(x.phone)}">${esc(x.phone)}</a><br>📍 ${esc(x.city)}, ${esc(x.district)}, ${esc(x.state)} - ${esc(x.pin)}<br>🚚 Delivery: ${esc(x.address)}<br>Landmark: ${esc(x.landmark)}${x.gps ? ` • <a href="https://www.google.com/maps?q=${x.gps.lat},${x.gps.lng}" target="_blank">Map</a>` : ""}</div>` : `<div class="mut">Buyer ki details payment approve hone ke baad milengi.</div>`) : ""}</div>`;
-    };
-    box.innerHTML = (b.empty && s.empty) ? `<p class="mut">Abhi koi order nahi</p>`
-      : b.docs.map(d => row(d, true)).join("") + s.docs.map(d => row(d, false)).join("");
-    if (!s.empty && !myDoc.upi) box.innerHTML = `<p class="mut">⚠️ Paisa lene ke liye Edit tab mein apna UPI ID daalo.</p>` + box.innerHTML;
-    box.onclick = e => { const id = e.target.dataset.recv; if (id) askReceived(id, OM[id], () => pTab("orders")); };
-  } else if (t === "fav") {
-    const L = (await Promise.all([...favs].map(i => getDoc(doc(db, "ads", i)).catch(() => null))))
-      .filter(x => x && x.exists()).map(x => ({ id: x.id, ...x.data() }));
-    box.innerHTML = L.length ? `<div class="grid" style="padding:0">${L.map(card).join("")}</div>` : `<p class="mut">Koi favorite nahi</p>`;
-  } else if (t === "premium") {
-    try { const f = await getDoc(doc(db, "users", me.uid)); if (f.exists()) myDoc = f.data(); } catch (e) {}
-    const prem = isPremium(), until = myDoc.premiumUntil?.toDate?.();
-    const rs = await getDocs(query(collection(db, "premium_requests"), where("uid", "==", me.uid)));
-    box.innerHTML = `<div class="row2"><b>${prem ? "⭐ Premium active" : "Premium nahi hai"}</b>
-      <div class="mut">${prem ? "Valid till: " + until.toLocaleDateString("en-IN") : "Premium se aap ad mein aur chat mein video (4 minute tak) daal sakte ho."}</div></div>
-      <div class="row2"><b>Plan chuno</b>
-      <button class="btn" data-plan="month">₹${settings.premiumMonth} / month</button>
-      <button class="btn alt" data-plan="year">₹${settings.premiumYear} / year</button><div id="pp"></div></div>
-      ${rs.docs.map(d => { const r = d.data(); return `<div class="row2"><b>${r.plan === "year" ? "Year" : "Month"} plan • ₹${r.amount}</b><br><span class="badge">${PST[r.status] || r.status}</span></div>`; }).join("")}`;
-    box.onclick = e => { const pl = e.target.dataset.plan; if (pl) payPremium(pl); };
-  } else {
-    box.innerHTML = `<input id="en" placeholder="Naam" value="${esc(myDoc.name)}"><input id="ep" placeholder="Phone" value="${esc(myDoc.phone)}">
-    <input id="ec" placeholder="City" value="${esc(myDoc.city)}">
-    <input id="eu" placeholder="Aapka UPI ID (paisa lene ke liye)" value="${esc(myDoc.upi || "")}">
-    <button class="btn" id="sv">Save changes</button>
-    <button class="btn alt" id="dl" style="color:#c0392b;border-color:#c0392b;margin-top:24px">🗑 Account delete karo</button>
-    <p class="mut">Delete karne ke liye aapki email par confirm link aayegi.</p>`;
-    $("#dl").onclick = startDelete;
-    $("#sv").onclick = async () => {
-      const d = { name: $("#en").value.trim() || myDoc.name, phone: $("#ep").value.trim(), city: $("#ec").value.trim(), upi: $("#eu").value.trim() };
-      await updateDoc(doc(db, "users", me.uid), d); Object.assign(myDoc, d); toast("Profile save ho gayi");
-    };
-  }
-}
-function askReceived(id, p, done) {
-  const ov = document.createElement("div"); ov.className = "ov";
-  ov.innerHTML = `<div class="sheet"><h3>📦 Product mila?</h3>
-  <p><b>${esc(p.adTitle)}</b><br>Product milne ki tarikh <b>${fmtD(p.deliveryDate)}</b> thi. Kya aapko product mil gaya?</p>
-  <button class="btn" id="ry">✅ Haan, product mil gaya</button>
-  <button class="btn alt" id="rn" style="color:#c0392b;border-color:#c0392b">❌ Nahi mila</button>
-  <button class="lnk" id="rl">Baad mein puchna</button></div>`;
-  document.body.appendChild(ov);
-  const fin = () => { ov.remove(); if (done) done(); };
-  const upd = async (data, msg) => {
-    try { await updateDoc(doc(db, "payments", id), data); toast(msg); } catch (e) { toast("Save nahi hua: " + e.message); }
-    fin();
-  };
-  ov.querySelector("#rl").onclick = fin;
-  ov.querySelector("#ry").onclick = () => upd({ deliveryStatus: "received", receivedAt: serverTimestamp() }, "Shukriya! Admin ko bata diya ✅");
-  ov.querySelector("#rn").onclick = () => upd({ deliveryStatus: "not_received", notReceivedAt: serverTimestamp() }, "Admin ko bata diya. Wo nayi tarikh batayega.");
-}
-async function checkDeliveries() {
-  try {
-    const s = await getDocs(query(collection(db, "payments"), where("buyerId", "==", me.uid)));
-    const L = s.docs.filter(d => { const p = d.data(); return ["verified", "settled"].includes(p.status) && p.deliveryDate && p.deliveryDate <= localDate() && (p.deliveryStatus || "pending") === "pending"; });
-    const next = i => { if (i < L.length) askReceived(L[i].id, L[i].data(), () => next(i + 1)); };
-    next(0);
-  } catch (e) {}
-}
-
-function payPremium(plan) {
-  const amt = plan === "year" ? settings.premiumYear : settings.premiumMonth;
-  if (!settings.upiId) return toast("UPI abhi set nahi hai");
-  const link = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(settings.upiName)}&am=${amt}&cu=INR&tn=${encodeURIComponent("Vendor Premium " + plan)}`;
-  const b = $("#pp");
-  b.innerHTML = `<p class="mut">UPI ID: <b>${esc(settings.upiId)}</b> • Amount: <b>₹${amt}</b></p>
-  <a class="btn" href="${link}">UPI app kholo aur pay karo</a>
-  <input id="pu" placeholder="Payment ke baad UPI Transaction ID (UTR) likho">
-  <button class="btn" id="pk">Maine pay kar diya</button>`;
-  $("#pk").onclick = async () => {
-    const u = $("#pu").value.trim(); if (u.length < 6) return toast("Sahi Transaction ID likho");
+    box.scrollTop = 1e9;
+  }, () => {});
+  ov.querySelector("#cx").onclick = () => { stop(); ov.remove(); };
+  const send = async () => {
+    const i = ov.querySelector("#ci"), t = i.value.trim(); if (!t) return; i.value = "";
     try {
-      await addDoc(collection(db, "premium_requests"), { uid: me.uid, name: myDoc.name, email: myDoc.email || "", plan, amount: amt, ref: u, status: "pending", createdAt: serverTimestamp() });
-      toast("Request bhej di. Admin verify karega ✅"); pTab("premium");
-    } catch (e) { toast("Request nahi gayi: " + e.message); }
+      await setDoc(doc(db, "chats", cid), { lastMessage: t, updatedAt: serverTimestamp() }, { merge: true });
+      await addDoc(collection(db, "chats", cid, "messages"), { from: aid, type: "text", text: t, createdAt: serverTimestamp() });
+    } catch (x) { alert("Send nahi hua: " + x.message); }
+  };
+  ov.querySelector("#cs").onclick = send;
+  ov.querySelector("#ci").onkeydown = e => { if (e.key === "Enter") send(); };
+}
+function paySellerSheet(id, p, sd, after) {
+  const c = comm(p), pay = Math.round((p.amount - c) * 100) / 100, upi = sd?.upi || "";
+  const link = upi ? `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(p.sellerName)}&am=${pay}&cu=INR&tn=${encodeURIComponent("Vendor payout " + (p.adTitle || "").slice(0, 30))}` : "";
+  const ov = modal(`<h3>Seller ko pay karo</h3>
+  <p><b>${esc(p.sellerName)}</b> • 📱 ${esc(sd?.phone || "-")}<br>Amount: <b>₹${pay}</b> (₹${p.amount} - commission ₹${c})<br>UPI ID: <b>${esc(upi) || "(seller ne UPI nahi diya)"}</b></p>
+  ${upi ? `<a href="${link}" style="display:block;text-align:center;background:#3b3fd8;color:#fff;padding:12px;border-radius:8px;text-decoration:none">UPI app kholo aur pay karo</a>` : `<p style="color:#c0392b">Seller se chat karke UPI ID mangwao.</p><button id="cs2">💬 Seller se chat karo</button>`}
+  <input id="su" placeholder="Pay karne ke baad UPI Transaction ID (optional)" style="margin-top:8px">
+  <button id="sdn">✅ Pay ho gaya: Settled mark karo</button><button class="g" id="sx">Band karo</button>`);
+  ov.querySelector("#sx").onclick = () => ov.remove();
+  if (ov.querySelector("#cs2")) ov.querySelector("#cs2").onclick = () => openChatWith(p.sellerId, p.sellerName);
+  ov.querySelector("#sdn").onclick = async () => {
+    if (!confirm("Seller ko paisa bhej diya? Isse payment 'settled' ho jayegi.")) return;
+    try { await updateDoc(doc(db, "payments", id), { status: "settled", settleRef: ov.querySelector("#su").value.trim(), settledAt: serverTimestamp() }); ov.remove(); if (after) after(); }
+    catch (x) { alert("Error: " + x.message); }
   };
 }
 
-/* ---------- account delete / recover ---------- */
-async function startDelete() {
-  if (myDoc.role === "admin") return toast("Admin account delete nahi ho sakta");
-  if (!confirm("Kya aap sach mein apna account delete karna chahte ho?\n\nAapki email par ek confirm link bheji jayegi.")) return;
-  try {
-    await sendSignInLinkToEmail(auth, me.email, { url: location.origin + location.pathname, handleCodeInApp: true });
-    localStorage.setItem("vendor_del_email", me.email);
-    alert("Confirm link " + me.email + " par bhej di hai. Email kholo (Spam bhi dekho) aur link par tap karo.");
-  } catch (e) { toast("Link nahi gayi: " + (e.code || e.message)); }
+/* ---------- dashboard ---------- */
+async function dash() {
+  V.innerHTML = "Loading...";
+  const cnt = async q => (await getCountFromServer(q)).data().count;
+  const days = [...Array(7)].map((_, i) => new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)).reverse();
+  const [u, a, p, ...d] = await Promise.all([
+    cnt(collection(db, "users")), cnt(collection(db, "ads")),
+    cnt(query(collection(db, "ads"), where("status", "==", "pending"))),
+    ...days.map(x => cnt(query(collection(db, "daily_activity"), where("date", "==", x))))
+  ]);
+  const mx = Math.max(1, ...d);
+  V.innerHTML = `<div class="stats"><div><b>${u}</b>Total users</div><div><b>${a}</b>Total ads</div>
+  <div><b>${p}</b>Pending ads</div><div><b>${d[6]}</b>Aaj ke active users</div></div>
+  <h3>Daily active users (pichhle 7 din)</h3>
+  ${days.map((x, i) => `<div class="bar"><span>${x.slice(5)}</span><i style="width:${d[i] / mx * 70}%"></i> ${d[i]}</div>`).join("")}`;
 }
-async function handleDeleteLink() {
-  const clean = () => history.replaceState({}, "", location.pathname);
-  const email = localStorage.getItem("vendor_del_email") || me.email;
-  if ((me.email || "").toLowerCase() !== email.toLowerCase()) { clean(); toast("Ye link kisi dusre account ki hai. Sahi account se login karo."); go("home"); return; }
-  try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credentialWithLink(email, location.href)); }
-  catch (e) { clean(); toast("Link galat ya purani ho gayi. Dobara delete request karo."); go("home"); return; }
-  clean();
-  $("#nav").hidden = true;
-  A.innerHTML = `<div class="box"><h2 style="text-align:center">Email verify ho gayi ✅</h2>
-  <p class="mut" style="text-align:center">Ab final confirm karo. Delete hone ke baad aap app use nahi kar paoge. Galti se hua to recover request bhej sakte ho.</p>
-  <button class="btn" id="dy" style="background:#c0392b">Haan, mera account delete karo</button>
-  <button class="btn alt" id="dn">Nahi, wapas jao</button></div>`;
-  $("#dn").onclick = () => { try { localStorage.removeItem("vendor_del_email"); } catch (e) {} go("home"); };
-  $("#dy").onclick = async () => {
+
+/* ---------- ads ---------- */
+async function adsTab(st) {
+  V.innerHTML = `<select id="st">${["pending", "approved", "rejected", "sold"].map(x => `<option ${x === st ? "selected" : ""}>${x}</option>`).join("")}</select><div id="al">Loading...</div>`;
+  $("#st").onchange = e => adsTab(e.target.value);
+  const s = await getDocs(query(collection(db, "ads"), where("status", "==", st), limit(100)));
+  $("#al").innerHTML = s.empty ? "<p>Is status mein koi ad nahi</p>" : s.docs.map(d => {
+    const a = d.data();
+    return `<div class="c"><div class="im">${(a.images || []).map(i => `<img src="${i}" alt="">`).join("")}</div>
+    ${a.videoUrl ? `<video controls playsinline preload="metadata" src="${esc(a.videoUrl)}"></video>` : ""}
+    <b>₹${a.price} — ${esc(a.title)}</b><p>${esc(a.description)}</p>
+    <small>${esc(a.category)} • ${esc(a.city)} • Seller: ${esc(a.sellerName)}</small><div style="margin-top:8px">
+    ${st !== "approved" ? `<button data-ap="${d.id}">✅ Approve</button>` : ""}
+    ${st !== "rejected" ? `<button class="g" data-rj="${d.id}">❌ Reject</button>` : ""}
+    <button class="g" data-dl="${d.id}">🗑 Delete</button></div></div>`;
+  }).join("");
+  $("#al").onclick = async e => {
+    const t = e.target.dataset;
+    if (t.ap) await updateDoc(doc(db, "ads", t.ap), { status: "approved", rejectReason: "" });
+    else if (t.rj) { const r = prompt("Reject karne ka reason?"); if (r === null) return; await updateDoc(doc(db, "ads", t.rj), { status: "rejected", rejectReason: r }); }
+    else if (t.dl) { if (!confirm("Ad delete karein?")) return; await deleteDoc(doc(db, "ads", t.dl)); }
+    else return;
+    adsTab(st);
+  };
+}
+
+/* ---------- users ---------- */
+const dtt = t => t?.toDate ? t.toDate().toLocaleDateString("en-IN") : "";
+const premOn = u => (u.premiumUntil?.toMillis?.() || 0) > Date.now();
+let UF = "active";
+async function grantPremium(id, days) {
+  const r = doc(db, "users", id), s = await getDoc(r);
+  const cur = s.data()?.premiumUntil?.toMillis?.() || 0;
+  await updateDoc(r, { premiumUntil: Timestamp.fromMillis(Math.max(Date.now(), cur) + days * 864e5) });
+}
+async function wipeUser(id) {
+  const ads = await getDocs(query(collection(db, "ads"), where("userId", "==", id)));
+  for (const d of ads.docs) await deleteDoc(d.ref);
+  await setDoc(doc(db, "users", id), { name: "Deleted user", email: "", phone: "", city: "", upi: "", role: "user", isBlocked: true, deleted: true, permanent: true, deletedAt: serverTimestamp(), deletedBy: "admin" });
+}
+async function usersTab() {
+  V.innerHTML = `<select id="uf"><option value="active">Active users</option><option value="deleted">Deleted users (data safe)</option><option value="all">Sab</option></select>
+  <input id="uq" placeholder="Naam, email, mobile ya UPI se search karo"><div id="ul">Loading...</div>`;
+  $("#uf").value = UF;
+  const s = await getDocs(collection(db, "users"));
+  const U = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  const draw = () => {
+    const q = $("#uq").value.toLowerCase(), f = $("#uf").value;
+    const L = U.filter(u => (f === "all" || (f === "deleted") === !!u.deleted) && ((u.name || "") + (u.email || "") + (u.phone || "") + (u.upi || "")).toLowerCase().includes(q));
+    $("#ul").innerHTML = L.map(u => {
+      let act = "";
+      if (u.role !== "admin") {
+        if (u.deleted && !u.permanent) act = `<button data-rs="${u.id}">♻️ Restore</button><button class="g" data-pd="${u.id}">❌ Permanent delete</button>`;
+        else if (!u.deleted) act = `<button class="g" data-ch="${u.id}" data-nm="${esc(u.name)}">💬 Chat</button><button data-b="${u.id}">${u.isBlocked ? "✅ Unblock" : "🚫 Block"}</button><button class="g" data-dl="${u.id}">🗑 Delete</button>
+          <button class="g" data-pm="${u.id}:30">⭐ +30 din</button><button class="g" data-pm="${u.id}:365">⭐ +365 din</button>${premOn(u) ? `<button class="g" data-pr="${u.id}">Premium hatao</button>` : ""}`;
+      }
+      return `<div class="c"><b>${esc(u.name)}</b> ${u.role === "admin" ? "(admin)" : ""} ${u.isBlocked && !u.deleted ? "🚫 Blocked" : ""}
+      ${u.deleted ? (u.permanent ? "🗑 Permanently deleted" : "🗑 Deleted (" + esc(u.deletedBy || "") + ", " + dtt(u.deletedAt) + ")") : ""}${premOn(u) ? " ⭐ till " + dtt(u.premiumUntil) : ""}<br>
+      <small>📧 ${esc(u.email)}</small><br><small>📱 Mobile: ${esc(u.phone) || "(nahi diya)"}</small><br>
+      <small>💳 UPI: ${esc(u.upi) || "(nahi diya)"}</small><br>
+      <small>📍 City: ${esc(u.city) || "(nahi diya)"} • Joined: ${dtt(u.createdAt)}</small><br>${act}</div>`;
+    }).join("") || "<p>Koi user nahi</p>";
+  };
+  draw(); $("#uq").oninput = draw; $("#uf").onchange = () => { UF = $("#uf").value; draw(); };
+  $("#ul").onclick = async e => {
+    const t = e.target.dataset, ref = id => doc(db, "users", id);
     try {
-      await updateDoc(doc(db, "users", me.uid), { deleted: true, deletedAt: serverTimestamp(), deletedBy: "user" });
-      try { localStorage.removeItem("vendor_del_email"); } catch (e) {}
-      await signOut(auth);
-      alert("Aapka account delete ho gaya. Galti se hua ho to dobara login karke recover request bhej sakte ho.");
-    } catch (e) { toast("Delete nahi hua: " + e.message); }
+      if (t.ch) { openChatWith(t.ch, t.nm); return; }
+      else if (t.b) { const u = U.find(x => x.id === t.b); await updateDoc(ref(t.b), { isBlocked: !u.isBlocked }); }
+      else if (t.dl) { if (!confirm("Is user ko delete karein? (Uska data admin panel mein safe rahega)")) return; await updateDoc(ref(t.dl), { deleted: true, deletedAt: serverTimestamp(), deletedBy: "admin" }); }
+      else if (t.rs) { await updateDoc(ref(t.rs), { deleted: false }); }
+      else if (t.pd) { if (!confirm("PERMANENT delete? User ka personal data hamesha ke liye hat jayega aur uski sabhi ads delete hongi. Ye wapas nahi hoga.")) return; await wipeUser(t.pd); alert("Permanent delete ho gaya. Poori tarah hatane ke liye Firebase console → Authentication → Users se bhi is user ko delete kar do."); }
+      else if (t.pm) { const [id, days] = t.pm.split(":"); await grantPremium(id, Number(days)); }
+      else if (t.pr) { await updateDoc(ref(t.pr), { premiumUntil: null }); }
+      else return;
+    } catch (x) { alert("Error: " + x.message); return; }
+    usersTab();
   };
 }
-async function viewDeleted(u, d) {
-  $("#nav").hidden = true;
-  let req = null;
-  try { const r = await getDoc(doc(db, "recover_requests", u.uid)); if (r.exists()) req = r.data(); } catch (e) {}
-  const st = req?.status;
-  A.innerHTML = `<div class="box"><img src="icon-192.png" alt="Vendor" style="width:90px;display:block;margin:0 auto">
-  <h2 style="text-align:center">Account delete ho chuka hai</h2>
-  ${d.permanent ? `<p class="mut" style="text-align:center">Ye account permanently delete ho gaya hai.</p>` : `<p class="mut" style="text-align:center">Galti se delete hua ho to recover request bhejo. Admin approve karega to account wapas aa jayega.</p>
-  ${st === "pending" ? `<p style="text-align:center"><b>Request bhej di hai. Admin ke approve karne ka intezaar karo.</b></p>` : st === "rejected" ? `<p style="text-align:center;color:#c0392b">Admin ne recover request reject kar di.</p>` : ""}
-  <button class="btn" id="rq" ${st === "pending" ? "disabled" : ""}>♻️ Recover request bhejo</button>
-  <button class="btn alt" id="rf">Status refresh karo</button>`}
-  <button class="lnk" id="vl" style="width:100%">Logout</button></div>`;
-  if ($("#rq")) $("#rq").onclick = async () => {
-    try { await setDoc(doc(db, "recover_requests", u.uid), { uid: u.uid, name: d.name || "", email: d.email || "", status: "pending", createdAt: serverTimestamp() }); toast("Recover request bhej di ✅"); viewDeleted(u, d); }
-    catch (e) { toast("Request nahi gayi: " + e.message); }
+
+/* ---------- premium requests ---------- */
+async function premTab() {
+  V.innerHTML = "Loading...";
+  const [rq, us] = await Promise.all([
+    getDocs(query(collection(db, "premium_requests"), where("status", "==", "pending"), limit(100))),
+    getDocs(collection(db, "users"))
+  ]);
+  const act = us.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => premOn(u) && !u.deleted);
+  V.innerHTML = `<h3>Premium requests (pending)</h3>` + (rq.empty ? "<p>Koi pending request nahi</p>" : rq.docs.map(d => {
+    const r = d.data();
+    return `<div class="c"><b>${esc(r.name)}</b> — ${r.plan === "year" ? "Year" : "Month"} plan • ₹${r.amount}<br>
+    <small>${esc(r.email)} • UTR: <b>${esc(r.ref)}</b> • ${dtt(r.createdAt)}</small><br>
+    <small>⚠️ Approve se pehle apne UPI app mein ye UTR aur ₹${r.amount} check karo.</small>
+    <div style="margin-top:8px"><button data-ap="${d.id}" data-uid="${r.uid}" data-days="${r.plan === "year" ? 365 : 30}">✅ Approve</button><button class="g" data-rj="${d.id}">❌ Reject</button></div></div>`;
+  }).join("")) + `<h3>Active Premium users (${act.length})</h3>` + (act.map(u => `<div class="c"><b>${esc(u.name)}</b> ⭐ till ${dtt(u.premiumUntil)}<br><small>${esc(u.email)}</small></div>`).join("") || "<p>Abhi koi nahi</p>");
+  V.onclick = async e => {
+    const t = e.target.dataset;
+    try {
+      if (t.ap) { await grantPremium(t.uid, Number(t.days)); await updateDoc(doc(db, "premium_requests", t.ap), { status: "approved" }); }
+      else if (t.rj) { if (!confirm("Reject karein?")) return; await updateDoc(doc(db, "premium_requests", t.rj), { status: "rejected" }); }
+      else return;
+    } catch (x) { alert("Error: " + x.message); return; }
+    premTab();
   };
-  if ($("#rf")) $("#rf").onclick = () => location.reload();
-  $("#vl").onclick = () => signOut(auth);
 }
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+/* ---------- account recover requests ---------- */
+async function recTab() {
+  V.innerHTML = "Loading...";
+  const s = await getDocs(query(collection(db, "recover_requests"), where("status", "==", "pending"), limit(100)));
+  V.innerHTML = `<h3>Account recover requests</h3>` + (s.empty ? "<p>Koi pending request nahi</p>" : s.docs.map(d => {
+    const r = d.data();
+    return `<div class="c"><b>${esc(r.name)}</b><br><small>${esc(r.email)} • ${dtt(r.createdAt)}</small>
+    <div style="margin-top:8px"><button data-ok="${d.id}">✅ Account wapas do</button><button class="g" data-no="${d.id}">❌ Reject</button></div></div>`;
+  }).join(""));
+  V.onclick = async e => {
+    const t = e.target.dataset;
+    try {
+      if (t.ok) {
+        const us = await getDoc(doc(db, "users", t.ok));
+        if (us.data()?.permanent) { alert("Ye account permanently delete ho chuka hai, wapas nahi aa sakta."); return; }
+        await updateDoc(doc(db, "users", t.ok), { deleted: false });
+        await updateDoc(doc(db, "recover_requests", t.ok), { status: "approved" });
+      } else if (t.no) { await updateDoc(doc(db, "recover_requests", t.no), { status: "rejected" }); }
+      else return;
+    } catch (x) { alert("Error: " + x.message); return; }
+    recTab();
+  };
+}
+
+/* ---------- categories ---------- */
+async function catsTab() {
+  V.innerHTML = `<input id="cn" placeholder="Nayi category ka naam"><button id="ca">Add category</button>
+  <button class="g" id="cd">Default categories daalo</button><div id="cl">Loading...</div>`;
+  const load = async () => {
+    const s = await getDocs(collection(db, "categories"));
+    $("#cl").innerHTML = s.empty ? "<p><small>Abhi koi category nahi (app default list dikhayegi)</small></p>"
+      : s.docs.map(d => `<div class="c">${esc(d.data().name)} <button class="g" data-d="${d.id}" style="float:right">Delete</button></div>`).join("");
+  };
+  await load();
+  $("#ca").onclick = async () => { const n = $("#cn").value.trim(); if (!n) return; await addDoc(collection(db, "categories"), { name: n }); $("#cn").value = ""; load(); };
+  $("#cd").onclick = async () => { for (const n of DEF_CATS) await addDoc(collection(db, "categories"), { name: n }); load(); };
+  $("#cl").onclick = async e => { const id = e.target.dataset.d; if (id && confirm("Delete karein?")) { await deleteDoc(doc(db, "categories", id)); load(); } };
+}
+
+/* ---------- payments ---------- */
+const PF = { pending: "Verify baaki", verified: "Seller ko pay baaki", settled: "Pay ho chuka", alert: "⚠️ Delivery alert (buyer ko nahi mila)", rejected: "Rejected" };
+async function payTab(st) {
+  V.innerHTML = `<select id="st">${Object.entries(PF).map(([k, v]) => `<option value="${k}" ${k === st ? "selected" : ""}>${v}</option>`).join("")}</select><div id="pl">Loading...</div>`;
+  $("#st").onchange = e => payTab(e.target.value);
+  const q = st === "alert"
+    ? query(collection(db, "payments"), where("deliveryStatus", "==", "not_received"), limit(100))
+    : query(collection(db, "payments"), where("status", "==", st), limit(100));
+  const [s, us] = await Promise.all([getDocs(q), getDocs(collection(db, "users"))]);
+  const U = {}; us.docs.forEach(d => U[d.id] = d.data());
+  const dets = {}, derr = {}, P = {};
+  await Promise.all(s.docs.map(async d => {
+    P[d.id] = d.data();
+    try { const x = await getDoc(doc(db, "payments", d.id, "private", "details")); if (x.exists()) dets[d.id] = x.data(); }
+    catch (e) { derr[d.id] = e.message; }
+  }));
+  $("#pl").innerHTML = s.empty ? "<p>Is section mein koi payment nahi</p>" : s.docs.map(d => {
+    const p = d.data(), c = comm(p), pay = Math.round((p.amount - c) * 100) / 100, x = dets[d.id];
+    const ds = p.deliveryStatus === "received" ? "✅ Buyer ne confirm kiya: product mil gaya" : p.deliveryStatus === "not_received" ? "⚠️ Buyer ko product NAHI mila. Nayi date do." : "⏳ Delivery baaki";
+    return `<div class="c"><b>${esc(p.adTitle)}</b> — ₹${p.amount}<br>
+    <small>Buyer: ${esc(p.buyerName)} → Seller: ${esc(p.sellerName)} • ${dt(p)}</small><br>
+    <small>Method: ${esc(p.method)} • ID: <b>${esc(p.ref)}</b></small><br>
+    Meri commission (${p.commissionPercent}%): <b>₹${c}</b> • Seller ko dena: <b>₹${pay}</b><br>
+    <small>Seller UPI: ${esc(U[p.sellerId]?.upi || "(seller ne UPI nahi diya)")} • Seller mobile: ${esc(U[p.sellerId]?.phone || "-")}</small><br>
+    ${x ? `<div style="background:#eef0f6;border-radius:8px;padding:8px;margin:6px 0"><b>📦 Buyer ki details</b><br>👤 ${esc(x.name)} • 📱 ${esc(x.phone)}<br>📍 Location: ${esc(x.city)}, ${esc(x.district)}, ${esc(x.state)} - ${esc(x.pin)}<br>🚚 Delivery: ${esc(x.address)}<br>Landmark: ${esc(x.landmark)}${x.gps ? ` • <a href="https://www.google.com/maps?q=${x.gps.lat},${x.gps.lng}" target="_blank">📍 Map kholo</a>` : " • GPS: buyer ne nahi jodi"}</div>`
+      : derr[d.id] ? `<small style="color:#c0392b">Buyer ki details load nahi hui: ${esc(derr[d.id])}<br>Firestore Rules publish karo (naye wale), phir page refresh karo.</small><br>`
+      : "<small>Buyer ki details nahi hain: ye payment naye form se pehle ki hai, ya buyer ne purani app se pay kiya.</small><br>"}
+    ${p.deliveryDate ? `<small>📅 Delivery date: <b>${fmtD(p.deliveryDate)}</b> • ${ds}</small><br>` : ""}
+    ${p.status === "pending" ? `<small>⚠️ Verify se pehle apne UPI app mein ye ID (${esc(p.ref)}) aur ₹${p.amount} check karo.</small>` : ""}
+    <div style="margin-top:8px">
+    ${p.status === "pending" ? `<button data-vf="${d.id}">✅ Verify + delivery date</button><button class="g" data-rj="${d.id}">❌ Reject</button>` : ""}
+    ${p.status === "verified" ? `<button data-pay="${d.id}">💸 Seller ko pay karo</button>` : ""}
+    ${(p.status === "verified" || p.status === "settled") && p.deliveryStatus !== "received" ? `<button class="g" data-nd="${d.id}">📅 ${p.deliveryStatus === "not_received" ? "Nayi date do" : p.deliveryDate ? "Date badlo" : "Delivery date daalo"}</button>` : ""}
+    <button class="g" data-cb="${d.id}">💬 Buyer se chat</button><button class="g" data-cs="${d.id}">💬 Seller se chat</button></div></div>`;
+  }).join("");
+  $("#pl").onclick = async e => {
+    const t = e.target.dataset, id = t.vf || t.rj || t.pay || t.nd || t.cb || t.cs, p = P[id];
+    if (!id) return;
+    try {
+      if (t.vf) {
+        const d = await askDate("Product buyer ko kab tak milega? (delivery date)"); if (!d) return;
+        await updateDoc(doc(db, "payments", t.vf), { status: "verified", deliveryDate: d, deliveryStatus: "pending", dateHistory: arrayUnion({ date: d, at: Timestamp.now() }) });
+        try { await updateDoc(doc(db, "ads", p.adId), { status: "sold" }); } catch (x) {}
+      } else if (t.rj) { if (!confirm("Payment reject karein?")) return; await updateDoc(doc(db, "payments", t.rj), { status: "rejected" }); }
+      else if (t.pay) { paySellerSheet(t.pay, p, U[p.sellerId], () => payTab(st)); return; }
+      else if (t.nd) {
+        const d = await askDate("Nayi delivery date", p.deliveryDate); if (!d) return;
+        await updateDoc(doc(db, "payments", t.nd), { deliveryDate: d, deliveryStatus: "pending", dateHistory: arrayUnion({ date: d, at: Timestamp.now() }) });
+      }
+      else if (t.cb) { openChatWith(p.buyerId, p.buyerName); return; }
+      else if (t.cs) { openChatWith(p.sellerId, p.sellerName); return; }
+    } catch (x) { alert("Error: " + x.message); return; }
+    payTab(st);
+  };
+}
+
+/* ---------- earnings ---------- */
+async function earnTab() {
+  V.innerHTML = "Loading...";
+  const s = await getDocs(query(collection(db, "payments"), where("status", "in", ["verified", "settled"]), limit(500)));
+  const L = s.docs.map(d => d.data()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  const total = L.reduce((x, p) => x + comm(p), 0), sales = L.reduce((x, p) => x + p.amount, 0);
+  V.innerHTML = `<div class="stats"><div><b>₹${Math.round(total * 100) / 100}</b>Meri total commission</div><div><b>₹${sales}</b>Total sales (verified)</div></div>
+  <h3>Kis product se kitna mila</h3>
+  ${L.length ? L.map(p => `<div class="c"><b>${esc(p.adTitle)}</b><br>Sale: ₹${p.amount} • Meri commission (${p.commissionPercent}%): <b>₹${comm(p)}</b><br>
+  <small>${esc(p.buyerName)} → ${esc(p.sellerName)} • ${dt(p)}</small></div>`).join("") : "<p>Abhi koi verified payment nahi</p>"}`;
+}
+
+/* ---------- chats (read only) ---------- */
+const nms = c => c.names ? Object.values(c.names).map(esc).join(" ↔ ") : `${esc(c.buyerName)} ↔ ${esc(c.sellerName)}`;
+const sender = (c, uid) => c.names ? (c.names[uid] || "User") : (uid === c.buyerId ? c.buyerName + " (buyer)" : c.sellerName + " (seller)");
+const mh = (m, nm) => `<small>${esc(nm)}</small><br>` + (m.type === "ad"
+  ? `<div class="msg">📎 Ad: ${esc(m.adTitle)} — ₹${m.adPrice}</div>`
+  : m.type === "video" ? `<div class="msg"><video controls playsinline preload="metadata" src="${esc(m.url)}"></video></div>`
+  : m.type === "img" ? `<div class="msg"><img src="${m.img}" style="max-width:200px;border-radius:8px" alt=""></div>`
+  : `<div class="msg">${esc(m.text)}</div>`) + "<br>";
+async function chatsTab() {
+  V.innerHTML = "Loading...";
+  const s = await getDocs(query(collection(db, "chats"), limit(200)));
+  const L = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.lastMessage)
+    .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+  V.innerHTML = L.length ? L.map(c => `<div class="c"><b>${nms(c)}</b><br><small>${esc(c.adTitle)}</small><br>${esc(c.lastMessage)}<br>
+  <button data-o="${c.id}">Poori chat dekho</button></div>`).join("") : "<p>Abhi koi chat nahi</p>";
+  V.onclick = async e => {
+    const id = e.target.dataset.o; if (!id) return;
+    const c = L.find(x => x.id === id);
+    const m = await getDocs(query(collection(db, "chats", id, "messages"), orderBy("createdAt")));
+    V.onclick = null;
+    V.innerHTML = `<button class="g" id="bk">← Wapas</button><h3>${nms(c)}</h3><small>${esc(c.adTitle)}</small><div style="margin-top:10px">
+    ${m.docs.map(d => { const x = d.data(); return mh(x, sender(c, x.from)); }).join("")}</div>`;
+    $("#bk").onclick = chatsTab;
+  };
+}
+
+/* ---------- settings ---------- */
+async function setTab() {
+  const s = await getDoc(doc(db, "settings", "app"));
+  const d = { upiId: "", upiName: "Vendor", razorpayKey: "", commission: 5, cloudinaryCloud: "", cloudinaryPreset: "", premiumMonth: 50, premiumYear: 600, ...(s.exists() ? s.data() : {}) };
+  V.innerHTML = `<h3>Payment Settings</h3>
+  <label>Aapka UPI ID (buyer ka paisa yahan aayega)</label><input id="s1" value="${esc(d.upiId)}" placeholder="naam@upi">
+  <label>UPI par dikhne wala naam</label><input id="s2" value="${esc(d.upiName)}">
+  <label>Razorpay Key ID (optional, online payment ke liye. Pehle rzp_test_ wali key se test karo)</label><input id="s3" value="${esc(d.razorpayKey)}" placeholder="rzp_test_xxxxxxxx">
+  <label>Meri commission (%)</label><input id="s4" type="number" value="${d.commission}">
+  <h3>Premium aur Video</h3>
+  <label>Premium price: 1 month (₹)</label><input id="s7" type="number" value="${d.premiumMonth}">
+  <label>Premium price: 1 year (₹)</label><input id="s8" type="number" value="${d.premiumYear}">
+  <label>Cloudinary Cloud name (video upload ke liye)</label><input id="s5" value="${esc(d.cloudinaryCloud)}" placeholder="jaise: dxxxxxxxx">
+  <label>Cloudinary Upload preset (Unsigned wala)</label><input id="s6" value="${esc(d.cloudinaryPreset)}" placeholder="jaise: vendor_videos">
+  <button id="sv">Save settings</button>`;
+  $("#sv").onclick = async () => {
+    const c = Number($("#s4").value), pm = Number($("#s7").value), py = Number($("#s8").value);
+    if (isNaN(c) || c < 0 || c > 50) return alert("Commission 0 se 50 ke beech rakho");
+    if (!(pm > 0) || !(py > 0)) return alert("Premium price sahi daalo");
+    await setDoc(doc(db, "settings", "app"), { upiId: $("#s1").value.trim(), upiName: $("#s2").value.trim() || "Vendor", razorpayKey: $("#s3").value.trim(), commission: c, premiumMonth: pm, premiumYear: py, cloudinaryCloud: $("#s5").value.trim(), cloudinaryPreset: $("#s6").value.trim() });
+    alert("Settings save ho gayi");
+  };
+}
 </script>
 </body>
 </html>
